@@ -109,7 +109,10 @@ function GameStatusBadge({ fixture }: { fixture: FixtureInfo | undefined }) {
 
   if (fixture.isRedZone) {
     return (
-      <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white text-[9px] font-extrabold uppercase tracking-wide text-center py-0.5 flex items-center justify-center gap-1 animate-pulse">
+      <div
+        className="text-white text-[9px] font-extrabold uppercase tracking-wide text-center py-0.5 flex items-center justify-center gap-1 animate-pulse"
+        style={{ backgroundImage: "linear-gradient(to right, #f97316, #dc2626)" }}
+      >
         <span className="w-1.5 h-1.5 rounded-full bg-white" />
         Red Zone
       </div>
@@ -533,7 +536,11 @@ export default function MyTeamPage() {
       )}
 
       {teamScore && (
-        <div className="rounded-2xl bg-gradient-to-br from-fpl-purple to-fpl-purpleDark text-white p-5 mb-4 flex items-center justify-between flex-wrap gap-4">
+        <div
+          className="rounded-2xl text-white p-5 mb-4 flex items-center justify-between flex-wrap gap-4"
+          style={{ backgroundImage: "linear-gradient(to bottom right, #37003c, #240028)" }}
+        >
+
           <div>
             <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-white/60 font-semibold mb-1">
               Week {week} points

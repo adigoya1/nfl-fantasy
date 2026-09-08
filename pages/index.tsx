@@ -22,7 +22,11 @@ export default function HomePage() {
 
   return (
     <Layout title="FGL — Fantasy Gridiron League">
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-fpl-purple via-fpl-purple to-fpl-purpleDark text-white px-8 py-16 sm:py-20 text-center">
+      <div
+        className="relative overflow-hidden rounded-3xl text-white px-8 py-16 sm:py-20 text-center"
+        style={{ backgroundImage: "linear-gradient(to bottom right, #37003c, #37003c, #240028)" }}
+      >
+
         <div
           className="absolute inset-0 opacity-[0.08] pointer-events-none"
           style={{
