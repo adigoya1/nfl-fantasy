@@ -73,15 +73,6 @@ const CHIP_LABELS: Record<Chip, string> = {
   FREE_HIT: "Free Hit",
 };
 
-const POSITION_ACCENT: Record<Position, string> = {
-  QB: "bg-fpl-pink",
-  RB: "bg-fpl-green",
-  WR: "bg-sky-400",
-  TE: "bg-amber-400",
-  K: "bg-slate-400",
-  DEF: "bg-fpl-purpleLight",
-};
-
 type CardStat = "opponent" | "price";
 
 interface FixtureInfo {
@@ -133,13 +124,9 @@ function PlayerCard({
           : "hover:-translate-y-0.5 hover:shadow-lg"
       }`}
     >
-      <div className={`h-1 ${POSITION_ACCENT[entry.player.position]}`} />
-      <div
-        className="px-2 py-1 flex items-center justify-center gap-1.5"
-        style={{ backgroundColor: colors.primary }}
-      >
+      <div className="px-2 py-1 flex items-center justify-center gap-1.5" style={{ backgroundColor: colors.primary }}>
         <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: headerText }}>
-          {abbr ?? entry.player.team.name}
+          {entry.player.position} | {abbr ?? entry.player.team.name}
         </span>
         {isFlex && (
           <span className="text-[10px] font-extrabold uppercase" style={{ color: colors.secondary }}>
