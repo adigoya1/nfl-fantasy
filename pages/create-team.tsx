@@ -69,8 +69,8 @@ export default function CreateTeamPage() {
       </Head>
       <h1 className="text-2xl font-bold mb-1">Create Your Team</h1>
       <p className="text-gray-600 text-sm mb-6">
-        Signed in as {session.user?.email}. Pick a team name and you'll get a real, auto-drafted,
-        budget-respecting squad immediately.
+        Signed in as {session.user?.email}. Pick a team name, then you'll build your own 13-man
+        squad -- $85M budget, real players, position by position.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
