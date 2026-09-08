@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Next.js build output
+.next/
+out/
+
+# Secrets -- never commit these
+.env
+.env.local
+.env.*.local
+
+# Misc
+.DS_Store
+*.log
+npm-debug.log*
+
+# Prisma
+# (schema + migrations SHOULD be committed; nothing to ignore there)
+
+# Deprecated files kept only because this environment couldn't delete them
+_deprecated/
+
+# Editor
+.vscode/
+.idea/

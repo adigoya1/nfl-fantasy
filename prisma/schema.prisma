@@ -1,0 +1,257 @@
+// NFL Fantasy — core data model
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Position {
+  QB
+  RB
+  WR
+  TE
+  K
+  DEF
+}
+
+enum LeagueType {
+  CLASSIC
+  HEAD_TO_HEAD
+}
+
+// CAPTAIN: doubles one starter's points for a single chosen week.
+// BENCH_BOOST: all bench players also score, for a single chosen week.
+// FREE_HIT: unlimited transfers with no point-hit for a single week.
+// Each is usable exactly once per team per season (see ChipUsage below) --
+// this replaces the earlier design where captaincy was a mandatory weekly
+// 2x pick; now nobody gets a multiplier unless CAPTAIN is actively played.
+enum Chip {
+  CAPTAIN
+  BENCH_BOOST
+  FREE_HIT
+}
+
+model Team {
+  id         String   @id @default(cuid())
+  name       String   @unique
+  conference String // "AFC" | "NFC"
+  division   String // e.g. "AFC East"
+  logoUrl    String?
+  players    Player[]
+  homeGames  Game[]   @relation("HomeTeam")
+  awayGames  Game[]   @relation("AwayTeam")
+}
+
+model Player {
+  id            String   @id @default(cuid())
+  // ESPN fantasy player id (or a synthetic "DEF-<team>" id for team defense
+  // units, though ESPN treats D/ST as its own draftable player already so
+  // this mostly won't be needed). Lets scripts/load-players.ts upsert
+  // idempotently instead of creating duplicate players every time it's re-run.
+  externalId    String?  @unique
+  name          String
+  position      Position
+  teamId        String
+  team          Team     @relation(fields: [teamId], references: [id])
+  currentPrice  Float    @default(4.0)
+  photoUrl      String?
+  active        Boolean  @default(true)
+
+  priceHistory  PriceHistory[]
+  gameStats     PlayerGameStat[]
+  weekScores PlayerWeekScore[]
+  rosterSlots   RosterSlot[]
+  transfersIn   Transfer[] @relation("TransferIn")
+  transfersOut  Transfer[] @relation("TransferOut")
+
+  @@index([position])
+  @@index([teamId])
+}
+
+model PriceHistory {
+  id         String  @id @default(cuid())
+  playerId   String
+  player     Player  @relation(fields: [playerId], references: [id])
+  week   Int
+  price      Float
+  delta      Float
+  createdAt  DateTime @default(now())
+
+  @@unique([playerId, week])
+}
+
+model Game {
+  id          String   @id @default(cuid())
+  // ESPN's own event id (from the public site.api.espn.com scoreboard),
+  // so scripts/load-week-games.ts can upsert idempotently instead of
+  // creating duplicate Game rows every time it's re-run.
+  espnEventId String?  @unique
+  week        Int
+  homeTeamId  String
+  awayTeamId  String
+  homeTeam    Team     @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam    Team     @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  kickoffAt   DateTime
+  status      String   @default("SCHEDULED") // SCHEDULED | IN_PROGRESS | FINAL
+  homeScore   Int?
+  awayScore   Int?
+
+  playerStats PlayerGameStat[]
+
+  @@index([week])
+}
+
+// Raw per-game stat line. Extend with more columns as the data pipeline grows.
+model PlayerGameStat {
+  id              String  @id @default(cuid())
+  playerId        String
+  player          Player  @relation(fields: [playerId], references: [id])
+  gameId          String
+  game            Game    @relation(fields: [gameId], references: [id])
+
+  passYds         Int     @default(0)
+  passTds         Int     @default(0)
+  interceptionsThrown Int @default(0)
+  rushYds         Int     @default(0)
+  rushTds         Int     @default(0)
+  receptions      Int     @default(0)
+  recYds          Int     @default(0)
+  recTds          Int     @default(0)
+  fumblesLost     Int     @default(0)
+  twoPtConversions Int    @default(0)
+
+  fgMade0to39     Int     @default(0)
+  fgMade40to49    Int     @default(0)
+  fgMade50Plus    Int     @default(0)
+  fgMissed        Int     @default(0)
+  xpMade          Int     @default(0)
+
+  dstSacks        Int     @default(0)
+  dstInterceptions Int    @default(0)
+  dstFumbleRecoveries Int @default(0)
+  dstDefensiveTds Int     @default(0)
+  dstPointsAllowed Int?   // null for non-DST players
+
+  @@unique([playerId, gameId])
+}
+
+model PlayerWeekScore {
+  id            String  @id @default(cuid())
+  playerId      String
+  player        Player  @relation(fields: [playerId], references: [id])
+  week      Int
+  fantasyPoints Float
+  bonusPoints   Int     @default(0)
+
+  @@unique([playerId, week])
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  displayName  String
+  createdAt    DateTime @default(now())
+  fantasyTeams FantasyTeam[]
+}
+
+model FantasyTeam {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  name            String
+  budgetRemaining Float    @default(0)
+  freeTransfers   Int      @default(1)
+
+  rosterSlots     RosterSlot[]
+  transfers       Transfer[]
+  chipUsages      ChipUsage[]
+  freeHitSnapshots FreeHitSnapshot[]
+  leagueMemberships LeagueMembership[]
+}
+
+model RosterSlot {
+  id             String      @id @default(cuid())
+  fantasyTeamId  String
+  fantasyTeam    FantasyTeam @relation(fields: [fantasyTeamId], references: [id])
+  playerId       String
+  player         Player      @relation(fields: [playerId], references: [id])
+  isStarter      Boolean     @default(false)
+  benchOrder     Int?
+
+  @@unique([fantasyTeamId, playerId])
+}
+
+// One row per chip a team has actually played. Captaincy is no longer a
+// persistent per-player flag on RosterSlot -- it only exists as the
+// captainPlayerId on the (single) week a team plays its CAPTAIN chip.
+model ChipUsage {
+  id              String      @id @default(cuid())
+  fantasyTeamId   String
+  fantasyTeam     FantasyTeam @relation(fields: [fantasyTeamId], references: [id])
+  chip            Chip
+  week        Int
+  // Only set (and only meaningful) when chip == CAPTAIN.
+  captainPlayerId String?
+  createdAt       DateTime    @default(now())
+
+  // Each chip can only ever be played once per team, for the whole season.
+  @@unique([fantasyTeamId, chip])
+}
+
+// Snapshot of a team's roster + budget/free-transfers, taken the instant
+// they activate FREE_HIT. pages/api/week/[week]/score.ts restores a team
+// to exactly this state once that week's games have all gone FINAL --
+// this is what makes Free Hit's changes temporary-for-one-week, matching
+// real FPL, instead of the earlier version's permanent squad changes.
+model FreeHitSnapshot {
+  id              String      @id @default(cuid())
+  fantasyTeamId   String
+  fantasyTeam     FantasyTeam @relation(fields: [fantasyTeamId], references: [id])
+  week        Int
+  budgetRemaining Float
+  freeTransfers   Int
+  // JSON array of { playerId, isStarter, benchOrder } -- the exact roster
+  // right before any transfers were made under this Free Hit.
+  roster          Json
+  // Set once pages/api/week/[week]/score.ts has restored this snapshot,
+  // so a snapshot is never applied twice.
+  restoredAt      DateTime?
+  createdAt       DateTime    @default(now())
+
+  @@unique([fantasyTeamId, week])
+}
+
+model Transfer {
+  id             String      @id @default(cuid())
+  fantasyTeamId  String
+  fantasyTeam    FantasyTeam @relation(fields: [fantasyTeamId], references: [id])
+  playerOutId    String
+  playerOut      Player      @relation("TransferOut", fields: [playerOutId], references: [id])
+  playerInId     String
+  playerIn       Player      @relation("TransferIn", fields: [playerInId], references: [id])
+  week       Int
+  pointsHit      Int         @default(0)
+  createdAt      DateTime    @default(now())
+}
+
+model League {
+  id          String     @id @default(cuid())
+  name        String
+  type        LeagueType @default(CLASSIC)
+  inviteCode  String     @unique
+  memberships LeagueMembership[]
+}
+
+model LeagueMembership {
+  id            String      @id @default(cuid())
+  leagueId      String
+  league        League      @relation(fields: [leagueId], references: [id])
+  fantasyTeamId String
+  fantasyTeam   FantasyTeam @relation(fields: [fantasyTeamId], references: [id])
+
+  @@unique([leagueId, fantasyTeamId])
+}
