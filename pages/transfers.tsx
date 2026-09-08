@@ -174,6 +174,9 @@ export default function TransfersPage() {
           <a href="/my-team" className="text-blue-600 underline text-sm">
             &larr; Back to My Team
           </a>
+          <a href="/leaderboard" className="text-blue-600 underline text-sm">
+            Leaderboard
+          </a>
         </div>
       </div>
 

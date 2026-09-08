@@ -25,7 +25,12 @@ export default function LeaderboardPage() {
       <Head>
         <title>FGL — Leaderboard</title>
       </Head>
-      <h1 className="text-2xl font-bold mb-4">FGL — Leaderboard</h1>
+      <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
+        <h1 className="text-2xl font-bold">FGL — Leaderboard</h1>
+        <a href="/my-team" className="text-blue-600 underline text-sm">
+          &larr; My Team
+        </a>
+      </div>
 
       <div className="flex items-center gap-2 mb-4">
         <label htmlFor="week" className="text-sm text-gray-600">

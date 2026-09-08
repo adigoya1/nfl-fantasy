@@ -181,6 +181,9 @@ export default function BuildSquadPage() {
           <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
             {totalHave} / {totalNeeded} players
           </span>
+          <a href="/leaderboard" className="text-blue-600 underline text-sm">
+            Leaderboard
+          </a>
         </div>
       </div>
 

@@ -318,6 +318,9 @@ export default function MyTeamPage() {
           <a href="/transfers" className="text-blue-600 underline text-sm">
             Make a transfer &rarr;
           </a>
+          <a href="/leaderboard" className="text-blue-600 underline text-sm">
+            Leaderboard
+          </a>
           <button onClick={() => signOut({ callbackUrl: "/" })} className="text-gray-500 underline text-sm">
             Sign out
           </button>
