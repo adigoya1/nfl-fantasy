@@ -5,6 +5,7 @@ import { Position, Chip } from "@prisma/client";
 import { validateLineup, RosterPlayer, STARTER_REQUIREMENTS, FLEX_ELIGIBLE } from "../lib/roster";
 import { ALL_CHIPS, MIN_FREE_HIT_WEEK } from "../lib/chips";
 import { ABBR_BY_TEAM_NAME } from "../lib/nflTeams";
+import { TEAM_COLORS, hexToRgba } from "../lib/nflTeamColors";
 import Layout from "../components/Layout";
 
 /**
@@ -113,6 +114,12 @@ function PlayerCard({
   isFlex?: boolean;
   onClick: () => void;
 }) {
+  // Translucent tint from the player's real NFL team colors (not logos/
+  // uniform art -- see conversation: those are trademarked, plain brand
+  // colors aren't) so cards read as "which team" at a glance.
+  const abbr = ABBR_BY_TEAM_NAME[entry.player.team.name];
+  const colors = (abbr && TEAM_COLORS[abbr]) || { primary: "#9CA3AF", secondary: "#6B7280" };
+
   return (
     <div
       onClick={onClick}
@@ -125,13 +132,16 @@ function PlayerCard({
       }`}
     >
       <div className={`h-1.5 ${POSITION_ACCENT[entry.player.position]}`} />
-      <div className="bg-white px-2 py-2">
-        <div className="text-[10px] text-gray-400 flex justify-center gap-1 uppercase tracking-wide">
-          <span>{ABBR_BY_TEAM_NAME[entry.player.team.name] ?? entry.player.team.name}</span>
+      <div
+        className="px-2 py-2"
+        style={{ background: `linear-gradient(135deg, ${hexToRgba(colors.primary, 0.18)}, ${hexToRgba(colors.secondary, 0.1)})` }}
+      >
+        <div className="text-[10px] text-gray-500 flex justify-center gap-1 uppercase tracking-wide font-semibold">
+          <span>{abbr ?? entry.player.team.name}</span>
           {isFlex && <span className="text-fpl-purple font-bold">FLEX</span>}
         </div>
-        <div className="font-semibold text-sm truncate text-gray-800">{entry.player.name}</div>
-        <div className="text-xs text-gray-500">{statText(entry, cardStat, fixturesByTeam)}</div>
+        <div className="font-semibold text-sm truncate text-gray-900">{entry.player.name}</div>
+        <div className="text-xs text-gray-600">{statText(entry, cardStat, fixturesByTeam)}</div>
       </div>
     </div>
   );
