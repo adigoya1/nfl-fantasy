@@ -134,7 +134,12 @@ function PlayerCard({
       <div className={`h-1.5 ${POSITION_ACCENT[entry.player.position]}`} />
       <div
         className="px-2 py-2"
-        style={{ background: `linear-gradient(135deg, ${hexToRgba(colors.primary, 0.18)}, ${hexToRgba(colors.secondary, 0.1)})` }}
+        style={{
+          background: `linear-gradient(135deg, ${hexToRgba(colors.primary, 0.35)}, ${hexToRgba(
+            colors.secondary,
+            0.22
+          )}), #ffffff`,
+        }}
       >
         <div className="text-[10px] text-gray-500 flex justify-center gap-1 uppercase tracking-wide font-semibold">
           <span>{abbr ?? entry.player.team.name}</span>
