@@ -1,8 +1,8 @@
-import Head from "next/head";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useSession, signIn } from "next-auth/react";
 import { Position } from "@prisma/client";
+import Layout from "../components/Layout";
 
 /**
  * Real Transfers page, backed by /api/fantasy-team/[id] (to show your
@@ -99,29 +99,45 @@ export default function TransfersPage() {
   }, [teamId, outgoing, search]);
 
   if (sessionStatus === "loading" || resolvingTeam) {
-    return <main className="max-w-3xl mx-auto p-6 text-gray-500">Loading...</main>;
+    return (
+      <Layout title="FGL — Transfers">
+        <p className="text-center text-gray-400">Loading...</p>
+      </Layout>
+    );
   }
 
   if (!session) {
     return (
-      <main className="max-w-md mx-auto p-10 text-center">
-        <h1 className="text-2xl font-bold mb-2">Transfers</h1>
-        <p className="text-gray-600 mb-6">Sign in with Google to manage your team's transfers.</p>
-        <button
-          onClick={() => signIn("google", { callbackUrl: "/transfers" })}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg"
-        >
-          Sign in with Google
-        </button>
-      </main>
+      <Layout title="FGL — Transfers">
+        <div className="max-w-md mx-auto bg-white rounded-2xl shadow-sm border p-10 text-center">
+          <h1 className="text-2xl font-bold mb-2 text-fpl-purple">Transfers</h1>
+          <p className="text-gray-500 mb-6">Sign in with Google to manage your team's transfers.</p>
+          <button
+            onClick={() => signIn("google", { callbackUrl: "/transfers" })}
+            className="bg-fpl-purple text-white px-5 py-2.5 rounded-full font-semibold hover:brightness-110 transition"
+          >
+            Sign in with Google
+          </button>
+        </div>
+      </Layout>
     );
   }
 
   if (!teamId) {
-    return <main className="max-w-3xl mx-auto p-6 text-gray-500">Taking you to create your team...</main>;
+    return (
+      <Layout title="FGL — Transfers">
+        <p className="text-center text-gray-400">Taking you to create your team...</p>
+      </Layout>
+    );
   }
 
-  if (!team) return <main className="max-w-3xl mx-auto p-6">Loading...</main>;
+  if (!team) {
+    return (
+      <Layout title="FGL — Transfers">
+        <p className="text-center text-gray-400">Loading...</p>
+      </Layout>
+    );
+  }
 
   async function handleTransferIn(playerIn: SearchPlayer) {
     if (!outgoing) return;
@@ -154,44 +170,41 @@ export default function TransfersPage() {
   }
 
   return (
-    <main className="max-w-4xl mx-auto p-6">
-      <Head>
-        <title>FGL — Transfers</title>
-      </Head>
-      <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
-        <h1 className="text-2xl font-bold">Transfers</h1>
-        <div className="flex gap-4 text-sm items-center">
-          <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full">
+    <Layout title="FGL — Transfers">
+      <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
+        <h1 className="text-2xl font-bold text-fpl-purple">Transfers</h1>
+        <div className="flex gap-2 text-sm items-center flex-wrap">
+          <span className="bg-fpl-green/20 text-fpl-purple font-semibold px-3 py-1 rounded-full">
             Budget left: ${team.budgetRemaining.toFixed(1)}M
           </span>
           {team.preseasonActive ? (
-            <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full">
+            <span className="bg-fpl-pink/10 text-fpl-pink font-semibold px-3 py-1 rounded-full">
               Unlimited transfers (preseason)
             </span>
           ) : (
-            <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">Free transfers: {team.freeTransfers}</span>
+            <span className="bg-fpl-purple/10 text-fpl-purple font-semibold px-3 py-1 rounded-full">
+              Free transfers: {team.freeTransfers}
+            </span>
           )}
-          <a href="/my-team" className="text-blue-600 underline text-sm">
-            &larr; Back to My Team
-          </a>
-          <a href="/leaderboard" className="text-blue-600 underline text-sm">
-            Leaderboard
-          </a>
         </div>
       </div>
 
-      {message && <div className="bg-blue-50 text-blue-800 text-sm rounded p-2 mb-4">{message}</div>}
+      {message && <div className="bg-fpl-purple/5 text-fpl-purple text-sm rounded-lg p-2.5 mb-4">{message}</div>}
 
-      <div className="grid grid-cols-2 gap-6">
-        <div>
-          <h2 className="text-sm font-bold text-gray-500 mb-2">Your Roster (click a player to transfer out)</h2>
+      <div className="grid sm:grid-cols-2 gap-6">
+        <div className="bg-white rounded-2xl shadow-sm border p-4">
+          <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">
+            Your Roster <span className="font-normal normal-case text-gray-400">(click to transfer out)</span>
+          </h2>
           <div className="space-y-2">
             {team.roster.map((r) => (
               <button
                 key={r.player.id}
                 onClick={() => setOutgoing(r.player)}
-                className={`w-full text-left border rounded-lg px-3 py-2 flex justify-between items-center ${
-                  outgoing?.id === r.player.id ? "bg-red-50 border-red-400 ring-2 ring-red-400" : "bg-white hover:bg-gray-50"
+                className={`w-full text-left border rounded-lg px-3 py-2 flex justify-between items-center transition ${
+                  outgoing?.id === r.player.id
+                    ? "bg-fpl-pink/10 border-fpl-pink ring-2 ring-fpl-pink/40"
+                    : "bg-white hover:bg-gray-50"
                 }`}
               >
                 <span>
@@ -205,8 +218,8 @@ export default function TransfersPage() {
           </div>
         </div>
 
-        <div>
-          <h2 className="text-sm font-bold text-gray-500 mb-2">
+        <div className="bg-white rounded-2xl shadow-sm border p-4">
+          <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">
             {outgoing ? `Replace ${outgoing.name} (${outgoing.position})` : "Select a player to transfer out first"}
           </h2>
           {outgoing && (
@@ -216,7 +229,7 @@ export default function TransfersPage() {
                 placeholder={`Search ${outgoing.position}s...`}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full border rounded-lg px-3 py-2 mb-3"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-fpl-purple/30 focus:border-fpl-purple"
               />
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {results.map((p) => {
@@ -226,8 +239,10 @@ export default function TransfersPage() {
                       key={p.id}
                       disabled={!affordable || busy}
                       onClick={() => handleTransferIn(p)}
-                      className={`w-full text-left border rounded-lg px-3 py-2 flex justify-between items-center ${
-                        affordable ? "bg-white hover:bg-green-50" : "bg-gray-50 opacity-50 cursor-not-allowed"
+                      className={`w-full text-left border rounded-lg px-3 py-2 flex justify-between items-center transition ${
+                        affordable
+                          ? "bg-white hover:bg-fpl-green/10 hover:border-fpl-green"
+                          : "bg-gray-50 opacity-50 cursor-not-allowed"
                       }`}
                     >
                       <span>
@@ -244,6 +259,6 @@ export default function TransfersPage() {
           )}
         </div>
       </div>
-    </main>
+    </Layout>
   );
 }

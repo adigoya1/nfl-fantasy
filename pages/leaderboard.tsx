@@ -1,12 +1,20 @@
-import Head from "next/head";
 import { useEffect, useState } from "react";
 import type { LeaderboardRow } from "../lib/rankings";
+import Layout from "../components/Layout";
 
 /**
  * Minimal leaderboard screen (design doc section 6.1 "Leaderboards").
  * Fetches /api/leaderboard/[week] and renders Overall + Week ranks.
- * Swap in a proper design system / NFL team color accents later.
+ * Styled like the FPL "Gameweek" leaderboard: purple header row, subtle
+ * zebra striping, medal-style badges for the top 3 overall ranks.
  */
+
+const RANK_BADGE: Record<number, string> = {
+  1: "bg-yellow-400 text-yellow-900",
+  2: "bg-gray-300 text-gray-700",
+  3: "bg-amber-600 text-amber-50",
+};
+
 export default function LeaderboardPage() {
   const [week, setWeek] = useState(1);
   const [rows, setRows] = useState<LeaderboardRow[]>([]);
@@ -21,67 +29,70 @@ export default function LeaderboardPage() {
   }, [week]);
 
   return (
-    <main className="max-w-3xl mx-auto p-6">
-      <Head>
-        <title>FGL — Leaderboard</title>
-      </Head>
-      <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
-        <h1 className="text-2xl font-bold">FGL — Leaderboard</h1>
-        <a href="/my-team" className="text-blue-600 underline text-sm">
-          &larr; My Team
-        </a>
+    <Layout title="FGL — Leaderboard">
+      <div className="flex justify-between items-center mb-5 flex-wrap gap-3">
+        <h1 className="text-2xl font-bold text-fpl-purple">Leaderboard</h1>
+        <div className="flex items-center gap-2">
+          <label htmlFor="week" className="text-sm text-gray-500">
+            Week
+          </label>
+          <input
+            id="week"
+            type="number"
+            min={1}
+            max={18}
+            value={week}
+            onChange={(e) => setWeek(Number(e.target.value))}
+            className="border border-gray-300 rounded-lg px-2 py-1 w-20 focus:outline-none focus:ring-2 focus:ring-fpl-purple/30 focus:border-fpl-purple"
+          />
+        </div>
       </div>
 
-      <div className="flex items-center gap-2 mb-4">
-        <label htmlFor="week" className="text-sm text-gray-600">
-          Week
-        </label>
-        <input
-          id="week"
-          type="number"
-          min={1}
-          max={18}
-          value={week}
-          onChange={(e) => setWeek(Number(e.target.value))}
-          className="border rounded px-2 py-1 w-20"
-        />
-      </div>
-
-      {loading ? (
-        <p>Loading…</p>
-      ) : (
-        <table className="w-full text-sm border-collapse">
-          <thead>
-            <tr className="text-left border-b">
-              <th className="py-2">Overall Rank</th>
-              <th>Wk Rank</th>
-              <th>Team</th>
-              <th className="text-right">Wk Pts</th>
-              <th className="text-right">Season Pts</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows
-              .sort((a, b) => a.overallRank - b.overallRank)
-              .map((row) => (
-                <tr key={row.fantasyTeamId} className="border-b">
-                  <td className="py-2">{row.overallRank}</td>
-                  <td>{row.weekRank}</td>
-                  <td>{row.fantasyTeamName}</td>
-                  <td className="text-right">{row.weekPoints}</td>
-                  <td className="text-right font-semibold">{row.seasonPoints}</td>
-                </tr>
-              ))}
-            {rows.length === 0 && (
-              <tr>
-                <td colSpan={5} className="py-6 text-center text-gray-500">
-                  No data yet for this week.
-                </td>
+      <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
+        {loading ? (
+          <p className="p-6 text-center text-gray-400">Loading…</p>
+        ) : (
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="bg-fpl-purple text-white text-left">
+                <th className="py-3 px-4 font-semibold">Overall</th>
+                <th className="py-3 px-2 font-semibold">Wk Rank</th>
+                <th className="py-3 px-2 font-semibold">Team</th>
+                <th className="py-3 px-4 font-semibold text-right">Wk Pts</th>
+                <th className="py-3 px-4 font-semibold text-right">Season Pts</th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      )}
-    </main>
+            </thead>
+            <tbody>
+              {rows
+                .sort((a, b) => a.overallRank - b.overallRank)
+                .map((row, i) => (
+                  <tr key={row.fantasyTeamId} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                    <td className="py-2.5 px-4">
+                      <span
+                        className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
+                          RANK_BADGE[row.overallRank] ?? "bg-fpl-purple/10 text-fpl-purple"
+                        }`}
+                      >
+                        {row.overallRank}
+                      </span>
+                    </td>
+                    <td className="py-2.5 px-2 text-gray-500">{row.weekRank}</td>
+                    <td className="py-2.5 px-2 font-medium text-gray-800">{row.fantasyTeamName}</td>
+                    <td className="py-2.5 px-4 text-right text-gray-700">{row.weekPoints}</td>
+                    <td className="py-2.5 px-4 text-right font-bold text-fpl-purple">{row.seasonPoints}</td>
+                  </tr>
+                ))}
+              {rows.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="py-8 text-center text-gray-400">
+                    No data yet for this week.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </Layout>
   );
 }

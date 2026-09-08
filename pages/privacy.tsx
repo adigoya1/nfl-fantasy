@@ -1,4 +1,4 @@
-import Head from "next/head";
+import Layout from "../components/Layout";
 
 /**
  * Bare-bones privacy policy page. Exists mainly so the Google OAuth consent
@@ -9,14 +9,12 @@ import Head from "next/head";
  */
 export default function PrivacyPage() {
   return (
-    <main className="max-w-2xl mx-auto p-6 sm:p-10 text-gray-800">
-      <Head>
-        <title>FGL — Privacy Policy</title>
-      </Head>
-      <h1 className="text-2xl font-bold mb-2">Privacy Policy</h1>
-      <p className="text-sm text-gray-500 mb-8">Last updated September 8, 2026</p>
+    <Layout title="FGL — Privacy Policy">
+      <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border p-6 sm:p-10 text-gray-800">
+        <h1 className="text-2xl font-bold mb-2 text-fpl-purple">Privacy Policy</h1>
+        <p className="text-sm text-gray-500 mb-8">Last updated September 8, 2026</p>
 
-      <div className="space-y-6 text-sm leading-relaxed">
+        <div className="space-y-6 text-sm leading-relaxed">
         <p>
           FGL ("this app") is a small fantasy football game built for a private group of
           friends. It is not a commercial product, and it does not sell or share your
@@ -66,7 +64,8 @@ export default function PrivacyPage() {
           <h2 className="font-semibold text-base mb-1">Questions</h2>
           <p>Reach out to the league organizer with any questions about this policy.</p>
         </section>
+        </div>
       </div>
-    </main>
+    </Layout>
   );
 }

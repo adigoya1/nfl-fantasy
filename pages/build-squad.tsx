@@ -1,9 +1,9 @@
-import Head from "next/head";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useSession, signIn } from "next-auth/react";
 import { Position } from "@prisma/client";
 import { SQUAD_REQUIREMENTS } from "../lib/roster";
+import Layout from "../components/Layout";
 
 /**
  * Squad builder for a brand-new team: teams start with an empty roster and
@@ -95,25 +95,37 @@ export default function BuildSquadPage() {
   }, [teamId, activePosition, search]);
 
   if (sessionStatus === "loading" || resolvingTeam) {
-    return <main className="max-w-3xl mx-auto p-6 text-gray-500">Loading...</main>;
+    return (
+      <Layout title="FGL — Build Your Squad">
+        <p className="text-center text-gray-400">Loading...</p>
+      </Layout>
+    );
   }
 
   if (!session) {
     return (
-      <main className="max-w-md mx-auto p-10 text-center">
-        <h1 className="text-2xl font-bold mb-2">Build Your Squad</h1>
-        <p className="text-gray-600 mb-6">Sign in with Google first.</p>
-        <button
-          onClick={() => signIn("google", { callbackUrl: "/build-squad" })}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg"
-        >
-          Sign in with Google
-        </button>
-      </main>
+      <Layout title="FGL — Build Your Squad">
+        <div className="max-w-md mx-auto bg-white rounded-2xl shadow-sm border p-10 text-center">
+          <h1 className="text-2xl font-bold mb-2 text-fpl-purple">Build Your Squad</h1>
+          <p className="text-gray-500 mb-6">Sign in with Google first.</p>
+          <button
+            onClick={() => signIn("google", { callbackUrl: "/build-squad" })}
+            className="bg-fpl-purple text-white px-5 py-2.5 rounded-full font-semibold hover:brightness-110 transition"
+          >
+            Sign in with Google
+          </button>
+        </div>
+      </Layout>
     );
   }
 
-  if (!teamId || !team) return <main className="max-w-3xl mx-auto p-6 text-gray-500">Loading...</main>;
+  if (!teamId || !team) {
+    return (
+      <Layout title="FGL — Build Your Squad">
+        <p className="text-center text-gray-400">Loading...</p>
+      </Layout>
+    );
+  }
 
   const countsByPosition: Record<string, number> = {};
   for (const r of team.roster) {
@@ -168,26 +180,20 @@ export default function BuildSquadPage() {
   }
 
   return (
-    <main className="max-w-4xl mx-auto p-6">
-      <Head>
-        <title>FGL — Build Your Squad</title>
-      </Head>
-      <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
-        <h1 className="text-2xl font-bold">Build Your Squad: {team.name}</h1>
-        <div className="flex gap-4 text-sm items-center">
-          <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full">
+    <Layout title="FGL — Build Your Squad">
+      <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
+        <h1 className="text-2xl font-bold text-fpl-purple">Build Your Squad: {team.name}</h1>
+        <div className="flex gap-2 text-sm items-center flex-wrap">
+          <span className="bg-fpl-green/20 text-fpl-purple font-semibold px-3 py-1 rounded-full">
             Budget left: ${team.budgetRemaining.toFixed(1)}M
           </span>
-          <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
+          <span className="bg-fpl-purple/10 text-fpl-purple font-semibold px-3 py-1 rounded-full">
             {totalHave} / {totalNeeded} players
           </span>
-          <a href="/leaderboard" className="text-blue-600 underline text-sm">
-            Leaderboard
-          </a>
         </div>
       </div>
 
-      {message && <div className="bg-red-50 text-red-700 text-sm rounded p-2 mb-4">{message}</div>}
+      {message && <div className="bg-red-50 text-red-700 text-sm rounded-lg p-2.5 mb-4">{message}</div>}
 
       <div className="space-y-4">
         {POSITION_ORDER.map((position) => {
@@ -197,15 +203,18 @@ export default function BuildSquadPage() {
           const rosterAtPosition = team.roster.filter((r) => r.player.position === position);
 
           return (
-            <div key={position} className={`border rounded-xl p-4 ${done ? "bg-green-50" : "bg-white"}`}>
+            <div
+              key={position}
+              className={`rounded-2xl p-4 shadow-sm border ${done ? "bg-fpl-green/10 border-fpl-green/30" : "bg-white"}`}
+            >
               <div className="flex justify-between items-center mb-2">
-                <h2 className="font-bold">
+                <h2 className="font-bold text-fpl-purple">
                   {position} <span className="text-sm font-normal text-gray-500">({have}/{need})</span>
                 </h2>
                 {!done && (
                   <button
                     onClick={() => setActivePosition(activePosition === position ? null : position)}
-                    className="text-sm bg-blue-600 text-white px-3 py-1 rounded"
+                    className="text-sm bg-fpl-purple text-white px-3 py-1.5 rounded-full font-medium hover:brightness-110 transition"
                   >
                     {activePosition === position ? "Close" : "Add player"}
                   </button>
@@ -217,13 +226,13 @@ export default function BuildSquadPage() {
                   {rosterAtPosition.map((r) => (
                     <span
                       key={r.player.id}
-                      className="bg-white border rounded-full px-3 py-1 text-sm flex items-center gap-2"
+                      className="bg-white border rounded-full px-3 py-1 text-sm flex items-center gap-2 shadow-sm"
                     >
                       {r.player.name} <span className="text-gray-500">${r.player.currentPrice.toFixed(1)}M</span>
                       <button
                         onClick={() => handleRemove(r.player.id)}
                         disabled={busy}
-                        className="text-red-500 hover:text-red-700"
+                        className="text-fpl-pink hover:brightness-110"
                         title="Remove"
                       >
                         &times;
@@ -241,7 +250,7 @@ export default function BuildSquadPage() {
                     placeholder={`Search ${position}s...`}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full border rounded-lg px-3 py-2 mb-2"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-fpl-purple/30 focus:border-fpl-purple"
                   />
                   <div className="space-y-1 max-h-64 overflow-y-auto">
                     {results.map((p) => {
@@ -251,8 +260,10 @@ export default function BuildSquadPage() {
                           key={p.id}
                           disabled={!affordable || busy}
                           onClick={() => handleAdd(p)}
-                          className={`w-full text-left border rounded-lg px-3 py-2 flex justify-between items-center ${
-                            affordable ? "bg-white hover:bg-green-50" : "bg-gray-50 opacity-50 cursor-not-allowed"
+                          className={`w-full text-left border rounded-lg px-3 py-2 flex justify-between items-center transition ${
+                            affordable
+                              ? "bg-white hover:bg-fpl-green/10 hover:border-fpl-green"
+                              : "bg-gray-50 opacity-50 cursor-not-allowed"
                           }`}
                         >
                           <span>
@@ -270,6 +281,6 @@ export default function BuildSquadPage() {
           );
         })}
       </div>
-    </main>
+    </Layout>
   );
 }

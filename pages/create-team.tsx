@@ -1,7 +1,7 @@
-import Head from "next/head";
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { useSession, signIn } from "next-auth/react";
+import Layout from "../components/Layout";
 
 /**
  * "Create Your Team" page, backed by POST /api/fantasy-team. Requires a
@@ -44,59 +44,68 @@ export default function CreateTeamPage() {
   }
 
   if (status === "loading") {
-    return <main className="max-w-md mx-auto p-10 text-center text-gray-500">Loading...</main>;
+    return (
+      <Layout title="FGL — Create Your Team">
+        <p className="text-center text-gray-400">Loading...</p>
+      </Layout>
+    );
   }
 
   if (!session) {
     return (
-      <main className="max-w-md mx-auto p-10 text-center">
-        <h1 className="text-2xl font-bold mb-2">Create Your Team</h1>
-        <p className="text-gray-600 mb-6">Sign in with Google first -- your team is tied to your account.</p>
-        <button
-          onClick={() => signIn("google", { callbackUrl: "/create-team" })}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg"
-        >
-          Sign in with Google
-        </button>
-      </main>
+      <Layout title="FGL — Create Your Team">
+        <div className="max-w-md mx-auto bg-white rounded-2xl shadow-sm border p-10 text-center">
+          <h1 className="text-2xl font-bold mb-2 text-fpl-purple">Create Your Team</h1>
+          <p className="text-gray-500 mb-6">Sign in with Google first -- your team is tied to your account.</p>
+          <button
+            onClick={() => signIn("google", { callbackUrl: "/create-team" })}
+            className="bg-fpl-purple text-white px-5 py-2.5 rounded-full font-semibold hover:brightness-110 transition"
+          >
+            Sign in with Google
+          </button>
+        </div>
+      </Layout>
     );
   }
 
   return (
-    <main className="max-w-md mx-auto p-10">
-      <Head>
-        <title>FGL — Create Your Team</title>
-      </Head>
-      <h1 className="text-2xl font-bold mb-1">Create Your Team</h1>
-      <p className="text-gray-600 text-sm mb-6">
-        Signed in as {session.user?.email}. Pick a team name, then you'll build your own 13-man
-        squad -- $85M budget, real players, position by position.
-      </p>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Team name</label>
-          <input
-            required
-            minLength={2}
-            maxLength={40}
-            value={teamName}
-            onChange={(e) => setTeamName(e.target.value)}
-            placeholder="e.g. Gridiron Gurus"
-            className="w-full border rounded-lg px-3 py-2"
-          />
+    <Layout title="FGL — Create Your Team">
+      <div className="max-w-md mx-auto bg-white rounded-2xl shadow-sm border overflow-hidden">
+        <div className="bg-fpl-purple px-6 py-5">
+          <h1 className="text-xl font-bold text-white">Create Your Team</h1>
         </div>
+        <div className="p-6">
+          <p className="text-gray-500 text-sm mb-6">
+            Signed in as <span className="font-medium text-gray-700">{session.user?.email}</span>. Pick a team
+            name, then you'll build your own 13-man squad -- $85M budget, real players, position by position.
+          </p>
 
-        {error && <div className="bg-red-50 text-red-700 text-sm rounded p-2">{error}</div>}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-700">Team name</label>
+              <input
+                required
+                minLength={2}
+                maxLength={40}
+                value={teamName}
+                onChange={(e) => setTeamName(e.target.value)}
+                placeholder="e.g. Gridiron Gurus"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-fpl-purple/30 focus:border-fpl-purple"
+              />
+            </div>
 
-        <button
-          type="submit"
-          disabled={busy}
-          className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
-        >
-          {busy ? "Drafting your squad..." : "Create Team"}
-        </button>
-      </form>
-    </main>
+            {error && <div className="bg-red-50 text-red-700 text-sm rounded-lg p-2.5">{error}</div>}
+
+            <button
+              type="submit"
+              disabled={busy}
+              className="w-full bg-fpl-green text-fpl-purple font-bold px-4 py-2.5 rounded-full disabled:opacity-50 hover:brightness-95 transition"
+            >
+              {busy ? "Drafting your squad..." : "Create Team"}
+            </button>
+          </form>
+        </div>
+      </div>
+    </Layout>
   );
 }
