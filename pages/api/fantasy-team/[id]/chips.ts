@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { Chip } from "@prisma/client";
+import { Chip, Prisma } from "@prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { canActivateChip, ALL_CHIPS } from "../../../../lib/chips";
 import { buildRosterSnapshot } from "../../../../lib/freeHit";
@@ -94,7 +94,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               week,
               budgetRemaining: team.budgetRemaining,
               freeTransfers: team.freeTransfers,
-              roster: buildRosterSnapshot(team.rosterSlots),
+              roster: buildRosterSnapshot(team.rosterSlots) as unknown as Prisma.InputJsonValue,
             },
           }),
         ]
