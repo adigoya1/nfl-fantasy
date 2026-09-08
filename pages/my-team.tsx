@@ -147,9 +147,13 @@ function PlayerCard({
           </span>
         )}
       </div>
-      <div className="bg-white px-2 py-2">
-        <div className="font-semibold text-sm truncate text-gray-900">{entry.player.name}</div>
-        <div className="text-xs font-medium" style={{ color: colors.primary }}>
+      <div className="bg-white dark:bg-slate-800 px-2 py-2">
+        <div className="font-semibold text-sm truncate text-gray-900 dark:text-white">{entry.player.name}</div>
+        {/* Plain gray rather than a team color here -- some teams' primary
+            colors (black, navy) would be unreadable against a dark card
+            body, and checking contrast against two different body colors
+            (white/slate-800) wasn't worth the complexity. */}
+        <div className="text-xs font-medium text-gray-600 dark:text-gray-300">
           {statText(entry, cardStat, fixturesByTeam)}
         </div>
       </div>
@@ -262,7 +266,7 @@ export default function MyTeamPage() {
   if (sessionStatus === "loading" || resolvingTeam) {
     return (
       <Layout title="FGL — My Team">
-        <p className="text-center text-gray-400">Loading...</p>
+        <p className="text-center text-gray-400 dark:text-gray-500">Loading...</p>
       </Layout>
     );
   }
@@ -270,9 +274,9 @@ export default function MyTeamPage() {
   if (!session) {
     return (
       <Layout title="FGL — My Team">
-        <div className="max-w-md mx-auto bg-white rounded-2xl shadow-sm border p-10 text-center">
-          <h1 className="text-2xl font-bold mb-2 text-fpl-purple">My Team</h1>
-          <p className="text-gray-500 mb-6">Sign in with Google to see your team.</p>
+        <div className="max-w-md mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-sm border dark:border-slate-700 p-10 text-center">
+          <h1 className="text-2xl font-bold mb-2 text-fpl-purple dark:text-fpl-green">My Team</h1>
+          <p className="text-gray-500 dark:text-gray-400 mb-6">Sign in with Google to see your team.</p>
           <button
             onClick={() => signIn("google", { callbackUrl: "/my-team" })}
             className="bg-fpl-purple text-white px-5 py-2.5 rounded-full font-semibold hover:brightness-110 transition"
@@ -289,7 +293,7 @@ export default function MyTeamPage() {
     // to /create-team; this is just what renders in the brief gap before that.
     return (
       <Layout title="FGL — My Team">
-        <p className="text-center text-gray-400">Taking you to create your team...</p>
+        <p className="text-center text-gray-400 dark:text-gray-500">Taking you to create your team...</p>
       </Layout>
     );
   }
@@ -297,14 +301,14 @@ export default function MyTeamPage() {
   if (loading) {
     return (
       <Layout title="FGL — My Team">
-        <p className="text-center text-gray-400">Loading...</p>
+        <p className="text-center text-gray-400 dark:text-gray-500">Loading...</p>
       </Layout>
     );
   }
   if (error || !team) {
     return (
       <Layout title="FGL — My Team">
-        <p className="text-center text-red-600">Error: {error}</p>
+        <p className="text-center text-red-600 dark:text-red-400">Error: {error}</p>
       </Layout>
     );
   }
@@ -397,17 +401,17 @@ export default function MyTeamPage() {
   return (
     <Layout title={`FGL — ${team.name}`}>
       <div className="flex justify-between items-center mb-4 flex-wrap gap-3">
-        <h1 className="text-2xl font-bold text-fpl-purple">{team.name}</h1>
+        <h1 className="text-2xl font-bold text-fpl-purple dark:text-fpl-green">{team.name}</h1>
         <div className="flex gap-2 text-sm items-center flex-wrap">
-          <span className="bg-fpl-green/20 text-fpl-purple font-semibold px-3 py-1 rounded-full">
+          <span className="bg-fpl-green/20 dark:bg-fpl-green/15 text-fpl-purple dark:text-fpl-green font-semibold px-3 py-1 rounded-full">
             Budget left: ${team.budgetRemaining.toFixed(1)}M
           </span>
           {team.preseasonActive ? (
-            <span className="bg-fpl-pink/10 text-fpl-pink font-semibold px-3 py-1 rounded-full">
+            <span className="bg-fpl-pink/10 dark:bg-fpl-pink/20 text-fpl-pink dark:text-pink-300 font-semibold px-3 py-1 rounded-full">
               Unlimited transfers (preseason)
             </span>
           ) : (
-            <span className="bg-fpl-purple/10 text-fpl-purple font-semibold px-3 py-1 rounded-full">
+            <span className="bg-fpl-purple/10 dark:bg-fpl-purple/40 text-fpl-purple dark:text-white font-semibold px-3 py-1 rounded-full">
               Free transfers: {team.freeTransfers}
             </span>
           )}
@@ -421,22 +425,22 @@ export default function MyTeamPage() {
       </div>
 
       <div className="flex justify-end items-center gap-4 mb-6 flex-wrap text-sm">
-        <label className="text-gray-500 flex items-center gap-2">
+        <label className="text-gray-500 dark:text-gray-400 flex items-center gap-2">
           Week
           <input
             type="number"
             min={1}
             value={week}
             onChange={(e) => setWeek(Number(e.target.value) || 1)}
-            className="w-16 border border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-fpl-purple/30 focus:border-fpl-purple"
+            className="w-16 border border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-fpl-purple/30 focus:border-fpl-purple"
           />
         </label>
-        <label className="text-gray-500 flex items-center gap-2">
+        <label className="text-gray-500 dark:text-gray-400 flex items-center gap-2">
           View
           <select
             value={cardStat}
             onChange={(e) => setCardStat(e.target.value as CardStat)}
-            className="border border-gray-300 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-fpl-purple/30 focus:border-fpl-purple"
+            className="border border-gray-300 dark:border-slate-600 rounded-lg px-2 py-1 bg-white dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-fpl-purple/30 focus:border-fpl-purple"
           >
             <option value="opponent">Opponent</option>
             <option value="price">Price</option>
@@ -444,13 +448,13 @@ export default function MyTeamPage() {
         </label>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border overflow-hidden mb-6">
-        <div className="px-4 py-3 bg-fpl-purple/5 border-b">
-          <h2 className="text-sm font-bold text-fpl-purple uppercase tracking-wide">Chips</h2>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border dark:border-slate-700 overflow-hidden mb-6">
+        <div className="px-4 py-3 bg-fpl-purple/5 dark:bg-fpl-purple/20 border-b dark:border-slate-700">
+          <h2 className="text-sm font-bold text-fpl-purple dark:text-fpl-green uppercase tracking-wide">Chips</h2>
         </div>
         <div className="p-4">
           {pickingCaptain && (
-            <div className="bg-fpl-purple/10 text-fpl-purple text-sm rounded-lg p-2.5 mb-3">
+            <div className="bg-fpl-purple/10 dark:bg-fpl-purple/30 text-fpl-purple dark:text-white text-sm rounded-lg p-2.5 mb-3">
               Click a starter below to name them Captain for week {week} (2x points that week only).{" "}
               <button className="underline font-medium" onClick={() => setPickingCaptain(false)}>
                 Cancel
@@ -463,12 +467,14 @@ export default function MyTeamPage() {
               const isUsed = usedChips.has(chip);
               const blockedThisWeek = chip === Chip.FREE_HIT && week < MIN_FREE_HIT_WEEK;
               return (
-                <div key={chip} className="border rounded-xl px-3 py-2 text-sm min-w-[8rem]">
-                  <div className="font-semibold text-gray-700">{CHIP_LABELS[chip]}</div>
+                <div key={chip} className="border dark:border-slate-700 rounded-xl px-3 py-2 text-sm min-w-[8rem]">
+                  <div className="font-semibold text-gray-700 dark:text-gray-200">{CHIP_LABELS[chip]}</div>
                   {isUsed ? (
-                    <div className="text-xs text-gray-400">Used, week {usage!.week}</div>
+                    <div className="text-xs text-gray-400 dark:text-gray-500">Used, week {usage!.week}</div>
                   ) : blockedThisWeek ? (
-                    <div className="text-xs text-gray-400 mt-1">Available from Week {MIN_FREE_HIT_WEEK}</div>
+                    <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                      Available from Week {MIN_FREE_HIT_WEEK}
+                    </div>
                   ) : chip === Chip.CAPTAIN ? (
                     <button
                       disabled={chipBusy}
@@ -490,13 +496,17 @@ export default function MyTeamPage() {
               );
             })}
           </div>
-          {chipMessage && <div className="text-sm text-gray-700 mt-2">{chipMessage}</div>}
+          {chipMessage && <div className="text-sm text-gray-700 dark:text-gray-300 mt-2">{chipMessage}</div>}
         </div>
       </div>
 
-      {swapError && <div className="bg-red-50 text-red-700 text-sm rounded-lg p-2.5 mb-3">{swapError}</div>}
+      {swapError && (
+        <div className="bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 text-sm rounded-lg p-2.5 mb-3">
+          {swapError}
+        </div>
+      )}
       {pendingInId && !swapError && !pickingCaptain && (
-        <div className="bg-yellow-50 text-yellow-800 text-sm rounded-lg p-2.5 mb-3">
+        <div className="bg-yellow-50 dark:bg-yellow-950/30 text-yellow-800 dark:text-yellow-300 text-sm rounded-lg p-2.5 mb-3">
           Now click a starter to swap out for this player (or click it again to cancel).
         </div>
       )}
@@ -526,8 +536,8 @@ export default function MyTeamPage() {
         })}
       </div>
 
-      <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wide mt-6 mb-2">Bench</h2>
-      <div className="flex gap-3 flex-wrap bg-white rounded-2xl border p-4 shadow-sm">
+      <h2 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mt-6 mb-2">Bench</h2>
+      <div className="flex gap-3 flex-wrap bg-white dark:bg-slate-800 rounded-2xl border dark:border-slate-700 p-4 shadow-sm">
         {bench.map((r) => (
           <PlayerCard
             key={r.player.id}
@@ -548,7 +558,7 @@ export default function MyTeamPage() {
         >
           {saving ? "Saving..." : "Save Lineup"}
         </button>
-        {saveMessage && <span className="text-sm text-gray-700">{saveMessage}</span>}
+        {saveMessage && <span className="text-sm text-gray-700 dark:text-gray-300">{saveMessage}</span>}
       </div>
     </Layout>
   );

@@ -10,9 +10,9 @@ import Layout from "../components/Layout";
 export default function PrivacyPage() {
   return (
     <Layout title="FGL — Privacy Policy">
-      <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border p-6 sm:p-10 text-gray-800">
-        <h1 className="text-2xl font-bold mb-2 text-fpl-purple">Privacy Policy</h1>
-        <p className="text-sm text-gray-500 mb-8">Last updated September 8, 2026</p>
+      <div className="max-w-2xl mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-sm border dark:border-slate-700 p-6 sm:p-10 text-gray-800 dark:text-gray-200">
+        <h1 className="text-2xl font-bold mb-2 text-fpl-purple dark:text-fpl-green">Privacy Policy</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">Last updated September 8, 2026</p>
 
         <div className="space-y-6 text-sm leading-relaxed">
         <p>

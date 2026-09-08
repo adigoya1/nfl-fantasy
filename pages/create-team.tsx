@@ -46,7 +46,7 @@ export default function CreateTeamPage() {
   if (status === "loading") {
     return (
       <Layout title="FGL — Create Your Team">
-        <p className="text-center text-gray-400">Loading...</p>
+        <p className="text-center text-gray-400 dark:text-gray-500">Loading...</p>
       </Layout>
     );
   }
@@ -54,9 +54,11 @@ export default function CreateTeamPage() {
   if (!session) {
     return (
       <Layout title="FGL — Create Your Team">
-        <div className="max-w-md mx-auto bg-white rounded-2xl shadow-sm border p-10 text-center">
-          <h1 className="text-2xl font-bold mb-2 text-fpl-purple">Create Your Team</h1>
-          <p className="text-gray-500 mb-6">Sign in with Google first -- your team is tied to your account.</p>
+        <div className="max-w-md mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-sm border dark:border-slate-700 p-10 text-center">
+          <h1 className="text-2xl font-bold mb-2 text-fpl-purple dark:text-fpl-green">Create Your Team</h1>
+          <p className="text-gray-500 dark:text-gray-400 mb-6">
+            Sign in with Google first -- your team is tied to your account.
+          </p>
           <button
             onClick={() => signIn("google", { callbackUrl: "/create-team" })}
             className="bg-fpl-purple text-white px-5 py-2.5 rounded-full font-semibold hover:brightness-110 transition"
@@ -70,19 +72,20 @@ export default function CreateTeamPage() {
 
   return (
     <Layout title="FGL — Create Your Team">
-      <div className="max-w-md mx-auto bg-white rounded-2xl shadow-sm border overflow-hidden">
-        <div className="bg-fpl-purple px-6 py-5">
+      <div className="max-w-md mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-sm border dark:border-slate-700 overflow-hidden">
+        <div className="bg-fpl-purple dark:bg-fpl-purpleDark px-6 py-5">
           <h1 className="text-xl font-bold text-white">Create Your Team</h1>
         </div>
         <div className="p-6">
-          <p className="text-gray-500 text-sm mb-6">
-            Signed in as <span className="font-medium text-gray-700">{session.user?.email}</span>. Pick a team
-            name, then you'll build your own 13-man squad -- $85M budget, real players, position by position.
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
+            Signed in as <span className="font-medium text-gray-700 dark:text-gray-200">{session.user?.email}</span>.
+            Pick a team name, then you'll build your own 13-man squad -- $85M budget, real players, position by
+            position.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1 text-gray-700">Team name</label>
+              <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-200">Team name</label>
               <input
                 required
                 minLength={2}
@@ -90,11 +93,15 @@ export default function CreateTeamPage() {
                 value={teamName}
                 onChange={(e) => setTeamName(e.target.value)}
                 placeholder="e.g. Gridiron Gurus"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-fpl-purple/30 focus:border-fpl-purple"
+                className="w-full border border-gray-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white dark:placeholder-gray-500 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-fpl-purple/30 focus:border-fpl-purple"
               />
             </div>
 
-            {error && <div className="bg-red-50 text-red-700 text-sm rounded-lg p-2.5">{error}</div>}
+            {error && (
+              <div className="bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 text-sm rounded-lg p-2.5">
+                {error}
+              </div>
+            )}
 
             <button
               type="submit"

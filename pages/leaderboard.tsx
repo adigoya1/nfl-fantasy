@@ -31,9 +31,9 @@ export default function LeaderboardPage() {
   return (
     <Layout title="FGL — Leaderboard">
       <div className="flex justify-between items-center mb-5 flex-wrap gap-3">
-        <h1 className="text-2xl font-bold text-fpl-purple">Leaderboard</h1>
+        <h1 className="text-2xl font-bold text-fpl-purple dark:text-fpl-green">Leaderboard</h1>
         <div className="flex items-center gap-2">
-          <label htmlFor="week" className="text-sm text-gray-500">
+          <label htmlFor="week" className="text-sm text-gray-500 dark:text-gray-400">
             Week
           </label>
           <input
@@ -43,18 +43,18 @@ export default function LeaderboardPage() {
             max={18}
             value={week}
             onChange={(e) => setWeek(Number(e.target.value))}
-            className="border border-gray-300 rounded-lg px-2 py-1 w-20 focus:outline-none focus:ring-2 focus:ring-fpl-purple/30 focus:border-fpl-purple"
+            className="border border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-2 py-1 w-20 focus:outline-none focus:ring-2 focus:ring-fpl-purple/30 focus:border-fpl-purple"
           />
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border dark:border-slate-700 overflow-hidden">
         {loading ? (
-          <p className="p-6 text-center text-gray-400">Loading…</p>
+          <p className="p-6 text-center text-gray-400 dark:text-gray-500">Loading…</p>
         ) : (
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr className="bg-fpl-purple text-white text-left">
+              <tr className="bg-fpl-purple dark:bg-fpl-purpleDark text-white text-left">
                 <th className="py-3 px-4 font-semibold">Overall</th>
                 <th className="py-3 px-2 font-semibold">Wk Rank</th>
                 <th className="py-3 px-2 font-semibold">Team</th>
@@ -66,25 +66,32 @@ export default function LeaderboardPage() {
               {rows
                 .sort((a, b) => a.overallRank - b.overallRank)
                 .map((row, i) => (
-                  <tr key={row.fantasyTeamId} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                  <tr
+                    key={row.fantasyTeamId}
+                    className={i % 2 === 0 ? "bg-white dark:bg-slate-800" : "bg-gray-50 dark:bg-slate-900"}
+                  >
                     <td className="py-2.5 px-4">
                       <span
                         className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
-                          RANK_BADGE[row.overallRank] ?? "bg-fpl-purple/10 text-fpl-purple"
+                          RANK_BADGE[row.overallRank] ?? "bg-fpl-purple/10 dark:bg-fpl-purple/40 text-fpl-purple dark:text-white"
                         }`}
                       >
                         {row.overallRank}
                       </span>
                     </td>
-                    <td className="py-2.5 px-2 text-gray-500">{row.weekRank}</td>
-                    <td className="py-2.5 px-2 font-medium text-gray-800">{row.fantasyTeamName}</td>
-                    <td className="py-2.5 px-4 text-right text-gray-700">{row.weekPoints}</td>
-                    <td className="py-2.5 px-4 text-right font-bold text-fpl-purple">{row.seasonPoints}</td>
+                    <td className="py-2.5 px-2 text-gray-500 dark:text-gray-400">{row.weekRank}</td>
+                    <td className="py-2.5 px-2 font-medium text-gray-800 dark:text-gray-100">
+                      {row.fantasyTeamName}
+                    </td>
+                    <td className="py-2.5 px-4 text-right text-gray-700 dark:text-gray-300">{row.weekPoints}</td>
+                    <td className="py-2.5 px-4 text-right font-bold text-fpl-purple dark:text-fpl-green">
+                      {row.seasonPoints}
+                    </td>
                   </tr>
                 ))}
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-gray-400">
+                  <td colSpan={5} className="py-8 text-center text-gray-400 dark:text-gray-500">
                     No data yet for this week.
                   </td>
                 </tr>

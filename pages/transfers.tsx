@@ -101,7 +101,7 @@ export default function TransfersPage() {
   if (sessionStatus === "loading" || resolvingTeam) {
     return (
       <Layout title="FGL — Transfers">
-        <p className="text-center text-gray-400">Loading...</p>
+        <p className="text-center text-gray-400 dark:text-gray-500">Loading...</p>
       </Layout>
     );
   }
@@ -109,9 +109,11 @@ export default function TransfersPage() {
   if (!session) {
     return (
       <Layout title="FGL — Transfers">
-        <div className="max-w-md mx-auto bg-white rounded-2xl shadow-sm border p-10 text-center">
-          <h1 className="text-2xl font-bold mb-2 text-fpl-purple">Transfers</h1>
-          <p className="text-gray-500 mb-6">Sign in with Google to manage your team's transfers.</p>
+        <div className="max-w-md mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-sm border dark:border-slate-700 p-10 text-center">
+          <h1 className="text-2xl font-bold mb-2 text-fpl-purple dark:text-fpl-green">Transfers</h1>
+          <p className="text-gray-500 dark:text-gray-400 mb-6">
+            Sign in with Google to manage your team's transfers.
+          </p>
           <button
             onClick={() => signIn("google", { callbackUrl: "/transfers" })}
             className="bg-fpl-purple text-white px-5 py-2.5 rounded-full font-semibold hover:brightness-110 transition"
@@ -126,7 +128,7 @@ export default function TransfersPage() {
   if (!teamId) {
     return (
       <Layout title="FGL — Transfers">
-        <p className="text-center text-gray-400">Taking you to create your team...</p>
+        <p className="text-center text-gray-400 dark:text-gray-500">Taking you to create your team...</p>
       </Layout>
     );
   }
@@ -134,7 +136,7 @@ export default function TransfersPage() {
   if (!team) {
     return (
       <Layout title="FGL — Transfers">
-        <p className="text-center text-gray-400">Loading...</p>
+        <p className="text-center text-gray-400 dark:text-gray-500">Loading...</p>
       </Layout>
     );
   }
@@ -172,54 +174,59 @@ export default function TransfersPage() {
   return (
     <Layout title="FGL — Transfers">
       <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
-        <h1 className="text-2xl font-bold text-fpl-purple">Transfers</h1>
+        <h1 className="text-2xl font-bold text-fpl-purple dark:text-fpl-green">Transfers</h1>
         <div className="flex gap-2 text-sm items-center flex-wrap">
-          <span className="bg-fpl-green/20 text-fpl-purple font-semibold px-3 py-1 rounded-full">
+          <span className="bg-fpl-green/20 dark:bg-fpl-green/15 text-fpl-purple dark:text-fpl-green font-semibold px-3 py-1 rounded-full">
             Budget left: ${team.budgetRemaining.toFixed(1)}M
           </span>
           {team.preseasonActive ? (
-            <span className="bg-fpl-pink/10 text-fpl-pink font-semibold px-3 py-1 rounded-full">
+            <span className="bg-fpl-pink/10 dark:bg-fpl-pink/20 text-fpl-pink dark:text-pink-300 font-semibold px-3 py-1 rounded-full">
               Unlimited transfers (preseason)
             </span>
           ) : (
-            <span className="bg-fpl-purple/10 text-fpl-purple font-semibold px-3 py-1 rounded-full">
+            <span className="bg-fpl-purple/10 dark:bg-fpl-purple/40 text-fpl-purple dark:text-white font-semibold px-3 py-1 rounded-full">
               Free transfers: {team.freeTransfers}
             </span>
           )}
         </div>
       </div>
 
-      {message && <div className="bg-fpl-purple/5 text-fpl-purple text-sm rounded-lg p-2.5 mb-4">{message}</div>}
+      {message && (
+        <div className="bg-fpl-purple/5 dark:bg-fpl-purple/20 text-fpl-purple dark:text-white text-sm rounded-lg p-2.5 mb-4">
+          {message}
+        </div>
+      )}
 
       <div className="grid sm:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl shadow-sm border p-4">
-          <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">
-            Your Roster <span className="font-normal normal-case text-gray-400">(click to transfer out)</span>
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border dark:border-slate-700 p-4">
+          <h2 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
+            Your Roster{" "}
+            <span className="font-normal normal-case text-gray-400 dark:text-gray-500">(click to transfer out)</span>
           </h2>
           <div className="space-y-2">
             {team.roster.map((r) => (
               <button
                 key={r.player.id}
                 onClick={() => setOutgoing(r.player)}
-                className={`w-full text-left border rounded-lg px-3 py-2 flex justify-between items-center transition ${
+                className={`w-full text-left border dark:border-slate-700 rounded-lg px-3 py-2 flex justify-between items-center transition ${
                   outgoing?.id === r.player.id
-                    ? "bg-fpl-pink/10 border-fpl-pink ring-2 ring-fpl-pink/40"
-                    : "bg-white hover:bg-gray-50"
+                    ? "bg-fpl-pink/10 dark:bg-fpl-pink/20 border-fpl-pink ring-2 ring-fpl-pink/40"
+                    : "bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700"
                 }`}
               >
-                <span>
-                  <span className="text-xs text-gray-500 mr-2">{r.player.position}</span>
+                <span className="dark:text-gray-100">
+                  <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">{r.player.position}</span>
                   {r.player.name}
-                  <span className="text-xs text-gray-500 ml-2">({r.player.team.name})</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">({r.player.team.name})</span>
                 </span>
-                <span className="text-sm text-gray-700">${r.player.currentPrice.toFixed(1)}M</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300">${r.player.currentPrice.toFixed(1)}M</span>
               </button>
             ))}
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border p-4">
-          <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border dark:border-slate-700 p-4">
+          <h2 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
             {outgoing ? `Replace ${outgoing.name} (${outgoing.position})` : "Select a player to transfer out first"}
           </h2>
           {outgoing && (
@@ -229,7 +236,7 @@ export default function TransfersPage() {
                 placeholder={`Search ${outgoing.position}s...`}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-fpl-purple/30 focus:border-fpl-purple"
+                className="w-full border border-gray-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white dark:placeholder-gray-500 rounded-lg px-3 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-fpl-purple/30 focus:border-fpl-purple"
               />
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {results.map((p) => {
@@ -239,21 +246,23 @@ export default function TransfersPage() {
                       key={p.id}
                       disabled={!affordable || busy}
                       onClick={() => handleTransferIn(p)}
-                      className={`w-full text-left border rounded-lg px-3 py-2 flex justify-between items-center transition ${
+                      className={`w-full text-left border dark:border-slate-700 rounded-lg px-3 py-2 flex justify-between items-center transition ${
                         affordable
-                          ? "bg-white hover:bg-fpl-green/10 hover:border-fpl-green"
-                          : "bg-gray-50 opacity-50 cursor-not-allowed"
+                          ? "bg-white dark:bg-slate-900 hover:bg-fpl-green/10 hover:border-fpl-green"
+                          : "bg-gray-50 dark:bg-slate-800 opacity-50 cursor-not-allowed"
                       }`}
                     >
-                      <span>
+                      <span className="dark:text-gray-100">
                         {p.name}
-                        <span className="text-xs text-gray-500 ml-2">({p.team.name})</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">({p.team.name})</span>
                       </span>
-                      <span className="text-sm text-gray-700">${p.currentPrice.toFixed(1)}M</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">${p.currentPrice.toFixed(1)}M</span>
                     </button>
                   );
                 })}
-                {results.length === 0 && <p className="text-sm text-gray-500">No matching players found.</p>}
+                {results.length === 0 && (
+                  <p className="text-sm text-gray-500 dark:text-gray-400">No matching players found.</p>
+                )}
               </div>
             </>
           )}

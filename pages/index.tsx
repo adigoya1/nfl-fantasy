@@ -77,7 +77,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      <p className="text-xs text-gray-400 text-center mt-6">
+      <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-6">
         Sign in with Google to create or manage your team -- your team is tied to your account.
       </p>
     </Layout>

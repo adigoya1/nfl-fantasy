@@ -97,7 +97,7 @@ export default function BuildSquadPage() {
   if (sessionStatus === "loading" || resolvingTeam) {
     return (
       <Layout title="FGL — Build Your Squad">
-        <p className="text-center text-gray-400">Loading...</p>
+        <p className="text-center text-gray-400 dark:text-gray-500">Loading...</p>
       </Layout>
     );
   }
@@ -105,9 +105,9 @@ export default function BuildSquadPage() {
   if (!session) {
     return (
       <Layout title="FGL — Build Your Squad">
-        <div className="max-w-md mx-auto bg-white rounded-2xl shadow-sm border p-10 text-center">
-          <h1 className="text-2xl font-bold mb-2 text-fpl-purple">Build Your Squad</h1>
-          <p className="text-gray-500 mb-6">Sign in with Google first.</p>
+        <div className="max-w-md mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-sm border dark:border-slate-700 p-10 text-center">
+          <h1 className="text-2xl font-bold mb-2 text-fpl-purple dark:text-fpl-green">Build Your Squad</h1>
+          <p className="text-gray-500 dark:text-gray-400 mb-6">Sign in with Google first.</p>
           <button
             onClick={() => signIn("google", { callbackUrl: "/build-squad" })}
             className="bg-fpl-purple text-white px-5 py-2.5 rounded-full font-semibold hover:brightness-110 transition"
@@ -122,7 +122,7 @@ export default function BuildSquadPage() {
   if (!teamId || !team) {
     return (
       <Layout title="FGL — Build Your Squad">
-        <p className="text-center text-gray-400">Loading...</p>
+        <p className="text-center text-gray-400 dark:text-gray-500">Loading...</p>
       </Layout>
     );
   }
@@ -182,18 +182,22 @@ export default function BuildSquadPage() {
   return (
     <Layout title="FGL — Build Your Squad">
       <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
-        <h1 className="text-2xl font-bold text-fpl-purple">Build Your Squad: {team.name}</h1>
+        <h1 className="text-2xl font-bold text-fpl-purple dark:text-fpl-green">Build Your Squad: {team.name}</h1>
         <div className="flex gap-2 text-sm items-center flex-wrap">
-          <span className="bg-fpl-green/20 text-fpl-purple font-semibold px-3 py-1 rounded-full">
+          <span className="bg-fpl-green/20 dark:bg-fpl-green/15 text-fpl-purple dark:text-fpl-green font-semibold px-3 py-1 rounded-full">
             Budget left: ${team.budgetRemaining.toFixed(1)}M
           </span>
-          <span className="bg-fpl-purple/10 text-fpl-purple font-semibold px-3 py-1 rounded-full">
+          <span className="bg-fpl-purple/10 dark:bg-fpl-purple/40 text-fpl-purple dark:text-white font-semibold px-3 py-1 rounded-full">
             {totalHave} / {totalNeeded} players
           </span>
         </div>
       </div>
 
-      {message && <div className="bg-red-50 text-red-700 text-sm rounded-lg p-2.5 mb-4">{message}</div>}
+      {message && (
+        <div className="bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 text-sm rounded-lg p-2.5 mb-4">
+          {message}
+        </div>
+      )}
 
       <div className="space-y-4">
         {POSITION_ORDER.map((position) => {
@@ -205,11 +209,16 @@ export default function BuildSquadPage() {
           return (
             <div
               key={position}
-              className={`rounded-2xl p-4 shadow-sm border ${done ? "bg-fpl-green/10 border-fpl-green/30" : "bg-white"}`}
+              className={`rounded-2xl p-4 shadow-sm border dark:border-slate-700 ${
+                done ? "bg-fpl-green/10 dark:bg-fpl-green/10 border-fpl-green/30 dark:border-fpl-green/30" : "bg-white dark:bg-slate-800"
+              }`}
             >
               <div className="flex justify-between items-center mb-2">
-                <h2 className="font-bold text-fpl-purple">
-                  {position} <span className="text-sm font-normal text-gray-500">({have}/{need})</span>
+                <h2 className="font-bold text-fpl-purple dark:text-fpl-green">
+                  {position}{" "}
+                  <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
+                    ({have}/{need})
+                  </span>
                 </h2>
                 {!done && (
                   <button
@@ -226,9 +235,10 @@ export default function BuildSquadPage() {
                   {rosterAtPosition.map((r) => (
                     <span
                       key={r.player.id}
-                      className="bg-white border rounded-full px-3 py-1 text-sm flex items-center gap-2 shadow-sm"
+                      className="bg-white dark:bg-slate-900 border dark:border-slate-700 rounded-full px-3 py-1 text-sm flex items-center gap-2 shadow-sm dark:text-gray-100"
                     >
-                      {r.player.name} <span className="text-gray-500">${r.player.currentPrice.toFixed(1)}M</span>
+                      {r.player.name}{" "}
+                      <span className="text-gray-500 dark:text-gray-400">${r.player.currentPrice.toFixed(1)}M</span>
                       <button
                         onClick={() => handleRemove(r.player.id)}
                         disabled={busy}
@@ -250,7 +260,7 @@ export default function BuildSquadPage() {
                     placeholder={`Search ${position}s...`}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-fpl-purple/30 focus:border-fpl-purple"
+                    className="w-full border border-gray-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white dark:placeholder-gray-500 rounded-lg px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-fpl-purple/30 focus:border-fpl-purple"
                   />
                   <div className="space-y-1 max-h-64 overflow-y-auto">
                     {results.map((p) => {
@@ -260,20 +270,25 @@ export default function BuildSquadPage() {
                           key={p.id}
                           disabled={!affordable || busy}
                           onClick={() => handleAdd(p)}
-                          className={`w-full text-left border rounded-lg px-3 py-2 flex justify-between items-center transition ${
+                          className={`w-full text-left border dark:border-slate-700 rounded-lg px-3 py-2 flex justify-between items-center transition ${
                             affordable
-                              ? "bg-white hover:bg-fpl-green/10 hover:border-fpl-green"
-                              : "bg-gray-50 opacity-50 cursor-not-allowed"
+                              ? "bg-white dark:bg-slate-900 hover:bg-fpl-green/10 hover:border-fpl-green"
+                              : "bg-gray-50 dark:bg-slate-800 opacity-50 cursor-not-allowed"
                           }`}
                         >
-                          <span>
-                            {p.name} <span className="text-xs text-gray-500 ml-1">({p.team.name})</span>
+                          <span className="dark:text-gray-100">
+                            {p.name}{" "}
+                            <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">({p.team.name})</span>
                           </span>
-                          <span className="text-sm text-gray-700">${p.currentPrice.toFixed(1)}M</span>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">
+                            ${p.currentPrice.toFixed(1)}M
+                          </span>
                         </button>
                       );
                     })}
-                    {results.length === 0 && <p className="text-sm text-gray-500">No matching players found.</p>}
+                    {results.length === 0 && (
+                      <p className="text-sm text-gray-500 dark:text-gray-400">No matching players found.</p>
+                    )}
                   </div>
                 </div>
               )}
