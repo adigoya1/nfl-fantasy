@@ -42,6 +42,35 @@ function mapStatus(statusType: any): "SCHEDULED" | "IN_PROGRESS" | "FINAL" {
   return "SCHEDULED";
 }
 
+/**
+ * ESPN only includes a `situation` object on a competition while it's live
+ * (IN_PROGRESS) -- it disappears once the game goes FINAL and never
+ * appears before kickoff. `situation.possession` is the ball-carrying
+ * team's id, which lines up with `competitor.team.id` (not the outer
+ * `competitor.id`, which is a different ESPN identifier), so resolve it by
+ * comparing against the home/away team ids we already looked up.
+ */
+function readSituation(
+  competition: any,
+  home: any,
+  away: any,
+  homeTeamId: string,
+  awayTeamId: string
+): { isRedZone: boolean; possessionTeamId: string | null } {
+  const situation = competition?.situation;
+  if (!situation) return { isRedZone: false, possessionTeamId: null };
+
+  const possessionEspnTeamId = situation.possession ? String(situation.possession) : null;
+  let possessionTeamId: string | null = null;
+  if (possessionEspnTeamId && String(home?.team?.id) === possessionEspnTeamId) {
+    possessionTeamId = homeTeamId;
+  } else if (possessionEspnTeamId && String(away?.team?.id) === possessionEspnTeamId) {
+    possessionTeamId = awayTeamId;
+  }
+
+  return { isRedZone: Boolean(situation.isRedZone), possessionTeamId };
+}
+
 async function main() {
   const week = Number(process.argv[2]);
   if (!Number.isInteger(week) || week < 1) {
@@ -84,6 +113,13 @@ async function main() {
     const status = mapStatus(statusType);
     const homeScore = status === "SCHEDULED" ? null : Number(home.score ?? 0);
     const awayScore = status === "SCHEDULED" ? null : Number(away.score ?? 0);
+    // Only IN_PROGRESS games carry a real situation -- explicitly clearing
+    // it otherwise means a game doesn't stay stuck "in the red zone" after
+    // it goes FINAL (ESPN just stops sending the field, it doesn't zero it).
+    const { isRedZone, possessionTeamId } =
+      status === "IN_PROGRESS"
+        ? readSituation(competition, home, away, homeTeamId, awayTeamId)
+        : { isRedZone: false, possessionTeamId: null };
 
     await prisma.game.upsert({
       where: { espnEventId: String(event.id) },
@@ -95,6 +131,8 @@ async function main() {
         status,
         homeScore,
         awayScore,
+        isRedZone,
+        possessionTeamId,
       },
       create: {
         espnEventId: String(event.id),
@@ -105,6 +143,8 @@ async function main() {
         status,
         homeScore,
         awayScore,
+        isRedZone,
+        possessionTeamId,
       },
     });
 

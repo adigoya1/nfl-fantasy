@@ -75,9 +75,14 @@ const CHIP_LABELS: Record<Chip, string> = {
 
 type CardStat = "opponent" | "price";
 
+type GameStatus = "SCHEDULED" | "IN_PROGRESS" | "FINAL";
+
 interface FixtureInfo {
   opponentAbbr: string;
   isHome: boolean;
+  status: GameStatus;
+  /** True only when THIS team currently has the ball inside the red zone. */
+  isRedZone: boolean;
 }
 
 /** What to print on a player card's bottom line for the selected view. */
@@ -86,6 +91,35 @@ function statText(entry: RosterEntry, cardStat: CardStat, fixturesByTeam: Record
   const fixture = fixturesByTeam[entry.player.team.name];
   if (!fixture) return "BYE";
   return `${fixture.isHome ? "vs" : "@"} ${fixture.opponentAbbr}`;
+}
+
+/** Small live/final status pill shown under the team header while a game's underway or done. */
+function GameStatusBadge({ fixture }: { fixture: FixtureInfo | undefined }) {
+  if (!fixture || fixture.status === "SCHEDULED") return null;
+
+  if (fixture.status === "FINAL") {
+    return (
+      <div className="bg-gray-700 text-white text-[9px] font-bold uppercase tracking-wide text-center py-0.5">
+        Final
+      </div>
+    );
+  }
+
+  if (fixture.isRedZone) {
+    return (
+      <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white text-[9px] font-extrabold uppercase tracking-wide text-center py-0.5 flex items-center justify-center gap-1 animate-pulse">
+        <span className="w-1.5 h-1.5 rounded-full bg-white" />
+        Red Zone
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-red-600 text-white text-[9px] font-extrabold uppercase tracking-wide text-center py-0.5 flex items-center justify-center gap-1">
+      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+      Live
+    </div>
+  );
 }
 
 function PlayerCard({
@@ -112,6 +146,7 @@ function PlayerCard({
   const abbr = ABBR_BY_TEAM_NAME[entry.player.team.name];
   const colors = (abbr && TEAM_COLORS[abbr]) || { primary: "#4B5563", secondary: "#9CA3AF" };
   const headerText = readableTextColor(colors.primary);
+  const fixture = fixturesByTeam[entry.player.team.name];
 
   return (
     <div
@@ -121,6 +156,8 @@ function PlayerCard({
           ? "ring-4 ring-yellow-400"
           : isCaptainPick
           ? "ring-4 ring-fpl-green"
+          : fixture?.status === "IN_PROGRESS"
+          ? "ring-2 ring-red-500"
           : "hover:-translate-y-0.5 hover:shadow-lg"
       }`}
     >
@@ -134,6 +171,7 @@ function PlayerCard({
           </span>
         )}
       </div>
+      <GameStatusBadge fixture={fixture} />
       <div className="bg-white dark:bg-slate-800 px-2 py-2">
         <div className="font-semibold text-sm truncate text-gray-900 dark:text-white">{entry.player.name}</div>
         {/* Plain gray rather than a team color here -- some teams' primary
@@ -193,18 +231,90 @@ export default function MyTeamPage() {
   const [cardStat, setCardStat] = useState<CardStat>("opponent");
   const [fixturesByTeam, setFixturesByTeam] = useState<Record<string, FixtureInfo | undefined>>({});
 
+  const [teamScore, setTeamScore] = useState<{ weekPoints: number; seasonPoints: number; overallRank: number } | null>(
+    null
+  );
+
+  // Reuses /api/leaderboard/[week] (already chip-aware: captain multiplier,
+  // bench boost) rather than re-deriving points client-side, so this number
+  // always matches the leaderboard exactly. Also picks up provisional
+  // (still-live) totals, since that endpoint scores IN_PROGRESS games too.
   useEffect(() => {
-    fetch(`/api/games/${week}`)
-      .then((res) => res.json())
-      .then((data: { games: { homeTeam: string; awayTeam: string }[] }) => {
-        const byTeam: Record<string, FixtureInfo> = {};
-        for (const g of data.games ?? []) {
-          byTeam[g.homeTeam] = { opponentAbbr: ABBR_BY_TEAM_NAME[g.awayTeam] ?? g.awayTeam, isHome: true };
-          byTeam[g.awayTeam] = { opponentAbbr: ABBR_BY_TEAM_NAME[g.homeTeam] ?? g.homeTeam, isHome: false };
-        }
-        setFixturesByTeam(byTeam);
-      })
-      .catch(() => setFixturesByTeam({}));
+    if (!teamId) return;
+    let cancelled = false;
+
+    function poll() {
+      fetch(`/api/leaderboard/${week}`)
+        .then((res) => res.json())
+        .then((rows: { fantasyTeamId: string; weekPoints: number; seasonPoints: number; overallRank: number }[]) => {
+          if (cancelled) return;
+          const mine = Array.isArray(rows) ? rows.find((r) => r.fantasyTeamId === teamId) : undefined;
+          setTeamScore(mine ? { weekPoints: mine.weekPoints, seasonPoints: mine.seasonPoints, overallRank: mine.overallRank } : null);
+        })
+        .catch(() => {
+          if (!cancelled) setTeamScore(null);
+        });
+    }
+
+    poll();
+    const interval = setInterval(poll, 30000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [teamId, week]);
+
+  const anyLiveThisWeek = Object.values(fixturesByTeam).some((f) => f?.status === "IN_PROGRESS");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    function poll() {
+      fetch(`/api/games/${week}`)
+        .then((res) => res.json())
+        .then(
+          (data: {
+            games: {
+              homeTeam: string;
+              awayTeam: string;
+              status: GameStatus;
+              isRedZone: boolean;
+              possessionTeam: string | null;
+            }[];
+          }) => {
+            if (cancelled) return;
+            const byTeam: Record<string, FixtureInfo> = {};
+            for (const g of data.games ?? []) {
+              byTeam[g.homeTeam] = {
+                opponentAbbr: ABBR_BY_TEAM_NAME[g.awayTeam] ?? g.awayTeam,
+                isHome: true,
+                status: g.status,
+                isRedZone: g.isRedZone && g.possessionTeam === g.homeTeam,
+              };
+              byTeam[g.awayTeam] = {
+                opponentAbbr: ABBR_BY_TEAM_NAME[g.homeTeam] ?? g.homeTeam,
+                isHome: false,
+                status: g.status,
+                isRedZone: g.isRedZone && g.possessionTeam === g.awayTeam,
+              };
+            }
+            setFixturesByTeam(byTeam);
+          }
+        )
+        .catch(() => {
+          if (!cancelled) setFixturesByTeam({});
+        });
+    }
+
+    poll();
+    // Re-poll while this page is open so LIVE/Red Zone badges actually move
+    // during a real game window, instead of only updating on a manual
+    // refresh. 30s matches how often scores/situations meaningfully change.
+    const interval = setInterval(poll, 30000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, [week]);
 
   function loadTeam() {
@@ -410,6 +520,33 @@ export default function MyTeamPage() {
           </a>
         </div>
       </div>
+
+      {teamScore && (
+        <div className="rounded-2xl bg-gradient-to-br from-fpl-purple to-fpl-purpleDark text-white p-5 mb-4 flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-white/60 font-semibold mb-1">
+              Week {week} points
+              {anyLiveThisWeek && (
+                <span className="inline-flex items-center gap-1 bg-red-600 text-white px-1.5 py-0.5 rounded-full text-[9px]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                  Live
+                </span>
+              )}
+            </div>
+            <div className="text-4xl font-extrabold leading-none">{teamScore.weekPoints}</div>
+          </div>
+          <div className="flex gap-6 text-right">
+            <div>
+              <div className="text-xs uppercase tracking-wide text-white/60 font-semibold mb-1">Season total</div>
+              <div className="text-2xl font-bold">{teamScore.seasonPoints}</div>
+            </div>
+            <div>
+              <div className="text-xs uppercase tracking-wide text-white/60 font-semibold mb-1">Overall rank</div>
+              <div className="text-2xl font-bold text-fpl-green">#{teamScore.overallRank}</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex justify-end items-center gap-4 mb-6 flex-wrap text-sm">
         <label className="text-gray-500 dark:text-gray-400 flex items-center gap-2">

@@ -36,14 +36,15 @@ enum Chip {
 }
 
 model Team {
-  id         String   @id @default(cuid())
-  name       String   @unique
-  conference String // "AFC" | "NFC"
-  division   String // e.g. "AFC East"
-  logoUrl    String?
-  players    Player[]
-  homeGames  Game[]   @relation("HomeTeam")
-  awayGames  Game[]   @relation("AwayTeam")
+  id              String   @id @default(cuid())
+  name            String   @unique
+  conference      String // "AFC" | "NFC"
+  division        String // e.g. "AFC East"
+  logoUrl         String?
+  players         Player[]
+  homeGames       Game[]   @relation("HomeTeam")
+  awayGames       Game[]   @relation("AwayTeam")
+  possessionGames Game[]   @relation("PossessionTeam")
 }
 
 model Player {
@@ -99,6 +100,15 @@ model Game {
   status      String   @default("SCHEDULED") // SCHEDULED | IN_PROGRESS | FINAL
   homeScore   Int?
   awayScore   Int?
+
+  // Live "situation" snapshot from ESPN's scoreboard, refreshed on every
+  // scripts/load-week-games.ts poll during a live game (see poll-live-week.ts).
+  // Both are meaningless (and left at their defaults) once the game isn't
+  // IN_PROGRESS -- ESPN stops including a `situation` object at all once a
+  // game goes FINAL or hasn't kicked off yet.
+  isRedZone        Boolean @default(false)
+  possessionTeamId String?
+  possessionTeam   Team?   @relation("PossessionTeam", fields: [possessionTeamId], references: [id])
 
   playerStats PlayerGameStat[]
 
