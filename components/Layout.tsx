@@ -29,7 +29,7 @@ export default function Layout({ children, title = "FGL" }: { children: React.Re
       <header className="bg-fpl-purple dark:bg-fpl-purpleDark sticky top-0 z-10 shadow-md">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-2 shrink-0">
-            <span className="bg-fpl-green text-fpl-purple font-extrabold text-sm px-2.5 py-1 rounded-md tracking-tight">
+            <span className="font-display bg-fpl-green text-fpl-purple font-extrabold text-sm px-2.5 py-1 rounded-md tracking-tight">
               FGL
             </span>
             <span className="text-white/90 font-semibold text-sm hidden sm:inline">Fantasy Gridiron League</span>

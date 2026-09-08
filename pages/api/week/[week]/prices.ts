@@ -10,6 +10,16 @@ import { computeWeeklyPriceChange } from "../../../../lib/pricing";
  * and transfer-count math here assumes a RosterSlot table with one row per
  * (fantasyTeam, player); replace with real aggregate queries as the app
  * grows past a handful of managers.
+ *
+ * NOT idempotent by nature -- it mutates currentPrice relative to itself,
+ * so calling it twice for the same week would apply that week's price
+ * movement twice. poll-live-week.ts previously got away with this only
+ * because it's a single long-running process that calls this once and then
+ * stops itself. Once scripts/poll-once.ts + a recurring cron entered the
+ * picture (.github/workflows/poll-live.yml), "only ever called once" could
+ * no longer be guaranteed by the caller, so the guard now lives here
+ * instead: if PriceHistory already has rows for this week, this is a
+ * repeat call and it's a no-op.
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -19,6 +29,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const week = Number(req.query.week);
   if (!Number.isInteger(week)) {
     return res.status(400).json({ error: "week must be an integer" });
+  }
+
+  const alreadyRun = await prisma.priceHistory.findFirst({ where: { week } });
+  if (alreadyRun) {
+    return res.status(200).json({ week, playersRepriced: 0, alreadyRun: true });
   }
 
   const totalActiveManagers = await prisma.fantasyTeam.count();

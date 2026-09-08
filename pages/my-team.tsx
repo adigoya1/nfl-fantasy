@@ -60,6 +60,8 @@ interface TeamResponse {
   budgetRemaining: number;
   freeTransfers: number;
   preseasonActive: boolean;
+  lineupLocked: boolean;
+  lockedWeek: number | null;
   squadComplete: boolean;
   roster: RosterEntry[];
   chipUsages: ChipUsageEntry[];
@@ -411,6 +413,7 @@ export default function MyTeamPage() {
   }
 
   function handleCardClick(playerId: string, isStarter: boolean) {
+    if (team?.lineupLocked) return; // belt-and-suspenders -- the API also rejects this
     if (pickingCaptain) {
       if (isStarter) handleActivateCaptain(playerId);
       return;
@@ -521,6 +524,14 @@ export default function MyTeamPage() {
         </div>
       </div>
 
+      {team.lineupLocked && (
+        <div className="rounded-xl bg-fpl-pink/10 dark:bg-fpl-pink/20 text-fpl-pink dark:text-pink-300 text-sm font-medium px-4 py-3 mb-4 flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-fpl-pink shrink-0" />
+          Lineup and chips are locked -- Week {team.lockedWeek}'s games have started. Changes reopen once this week
+          is over.
+        </div>
+      )}
+
       {teamScore && (
         <div className="rounded-2xl bg-gradient-to-br from-fpl-purple to-fpl-purpleDark text-white p-5 mb-4 flex items-center justify-between flex-wrap gap-4">
           <div>
@@ -533,16 +544,16 @@ export default function MyTeamPage() {
                 </span>
               )}
             </div>
-            <div className="text-4xl font-extrabold leading-none">{teamScore.weekPoints}</div>
+            <div className="font-display text-4xl font-extrabold leading-none">{teamScore.weekPoints}</div>
           </div>
           <div className="flex gap-6 text-right">
             <div>
               <div className="text-xs uppercase tracking-wide text-white/60 font-semibold mb-1">Season total</div>
-              <div className="text-2xl font-bold">{teamScore.seasonPoints}</div>
+              <div className="font-display text-2xl font-bold">{teamScore.seasonPoints}</div>
             </div>
             <div>
               <div className="text-xs uppercase tracking-wide text-white/60 font-semibold mb-1">Overall rank</div>
-              <div className="text-2xl font-bold text-fpl-green">#{teamScore.overallRank}</div>
+              <div className="font-display text-2xl font-bold text-fpl-green">#{teamScore.overallRank}</div>
             </div>
           </div>
         </div>
@@ -599,6 +610,8 @@ export default function MyTeamPage() {
                     <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                       Available from Week {MIN_FREE_HIT_WEEK}
                     </div>
+                  ) : team.lineupLocked ? (
+                    <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">Locked this week</div>
                   ) : chip === Chip.CAPTAIN ? (
                     <button
                       disabled={chipBusy}
@@ -681,10 +694,10 @@ export default function MyTeamPage() {
       <div className="mt-6 flex items-center gap-3">
         <button
           onClick={handleSave}
-          disabled={saving}
+          disabled={saving || team.lineupLocked}
           className="bg-fpl-purple text-white px-5 py-2.5 rounded-full font-semibold disabled:opacity-50 hover:brightness-110 transition"
         >
-          {saving ? "Saving..." : "Save Lineup"}
+          {team.lineupLocked ? "Locked" : saving ? "Saving..." : "Save Lineup"}
         </button>
         {saveMessage && <span className="text-sm text-gray-700 dark:text-gray-300">{saveMessage}</span>}
       </div>

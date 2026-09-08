@@ -1,0 +1,56 @@
+name: Poll live NFL week
+
+# Runs scripts/poll-once.ts on a schedule so live scores/red-zone data keep
+# updating during game windows without needing a laptop open running
+# poll-live-week.ts. See README-poll-live-week for the manual alternative.
+#
+# One-time setup (repo Settings -> Secrets and variables -> Actions):
+#   - Secret   DATABASE_URL       your production database connection string
+#   - Variable CURRENT_NFL_WEEK   the week number to poll (update this once
+#                                  a week -- e.g. "1", then "2" the next
+#                                  week, etc.)
+#
+# You can also trigger a one-off run manually from the Actions tab
+# ("Run workflow"), optionally overriding the week for that run only.
+on:
+  schedule:
+    # All times UTC. Windows are deliberately generous (wide enough to
+    # cover both EST and EDT kickoffs) rather than exact, since an extra
+    # no-op-ish run just costs a few seconds.
+    - cron: "*/10 23 * * 4" # Thursday night game
+    - cron: "*/10 0-4 * * 5" # ...continuing into Friday
+    - cron: "*/10 13-23 * * 0" # Sunday's full slate
+    - cron: "*/10 0-4 * * 1" # ...continuing into Monday
+    - cron: "*/10 23 * * 1" # Monday night game
+    - cron: "*/10 0-4 * * 2" # ...continuing into Tuesday
+  workflow_dispatch:
+    inputs:
+      week:
+        description: "Week to poll (overrides the CURRENT_NFL_WEEK variable for this run)"
+        required: false
+
+# Only one poll should ever be in flight at a time -- overlapping runs would
+# both try to write the same Game/PlayerGameStat rows.
+concurrency:
+  group: poll-live
+  cancel-in-progress: false
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      APP_BASE_URL: "https://playfgl.vercel.app" # update if your deployed URL ever changes
+      WEEK: ${{ github.event.inputs.week || vars.CURRENT_NFL_WEEK }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Poll once
+        run: npx tsx scripts/poll-once.ts "$WEEK" "$APP_BASE_URL"

@@ -16,6 +16,12 @@ module.exports = {
       },
       fontFamily: {
         sans: ["Inter", "ui-sans-serif", "system-ui", "-apple-system", "sans-serif"],
+        // Headings/scores use this instead -- Inter alone (the default
+        // Tailwind/shadcn/AI-tool font) reads as generic; pairing it with a
+        // more distinctive display face for big text is a normal editorial
+        // move that makes the rest of the app feel considered rather than
+        // templated. See globals.css for where h1-h3 get this automatically.
+        display: ["Space Grotesk", "ui-sans-serif", "system-ui", "sans-serif"],
       },
     },
   },

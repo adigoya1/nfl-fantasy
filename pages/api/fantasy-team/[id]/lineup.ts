@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "../../../../lib/prisma";
 import { validateLineup, RosterPlayer } from "../../../../lib/roster";
+import { computeLineupLock } from "../../../../lib/lineupLock";
 import { getSessionUserId } from "../../../../lib/auth";
 
 /**
@@ -40,6 +41,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const sessionUserId = await getSessionUserId(req, res);
   if (sessionUserId !== team.userId) {
     return res.status(403).json({ error: "You don't own this team." });
+  }
+
+  const allGames = await prisma.game.findMany({ select: { week: true, status: true, kickoffAt: true } });
+  const lock = computeLineupLock(allGames, new Date());
+  if (lock.locked) {
+    return res.status(423).json({ error: `Lineups are locked -- Week ${lock.week}'s games have already started.` });
   }
 
   const squad: RosterPlayer[] = team.rosterSlots.map((s) => ({

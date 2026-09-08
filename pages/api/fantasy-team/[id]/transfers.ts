@@ -61,6 +61,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(403).json({ error: "You don't own this team." });
   }
 
+  // Deliberately NOT locked at kickoff like lineup.ts/chips.ts are: a
+  // transfer only changes squad membership, not who's starting -- with the
+  // lineup and chips (esp. BENCH_BOOST) locked, a mid-week transfer can't
+  // affect this week's score either way, so there's no fairness exploit to
+  // close here, and locking it too would remove the "prepare for next
+  // week early, mid-week" flexibility that's an intentional design choice
+  // (see the preseason-window comment above).
   const freeHitActive = team.chipUsages.some((u) => u.chip === Chip.FREE_HIT && u.week === week);
 
   const week1Opener =

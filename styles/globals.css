@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -7,6 +7,19 @@
 body {
   font-family: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
   background-color: #f3f4f8;
+}
+
+/* Headings/big numbers get the more distinctive display face; body copy
+   (labels, prices, table cells, etc.) stays on Inter for legibility at
+   small sizes. Scoped to h1-h3 rather than every heading-ish element so
+   small in-card labels (h2 used for section titles like "Chips") don't
+   accidentally end up display-sized -- those already opt out via their own
+   text-sm classes, but keeping the font swap itself narrow is safer. */
+h1,
+h2,
+h3,
+.font-display {
+  font-family: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
 .dark body {

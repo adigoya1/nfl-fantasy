@@ -3,6 +3,7 @@ import { Chip, Prisma } from "@prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { canActivateChip, ALL_CHIPS } from "../../../../lib/chips";
 import { buildRosterSnapshot } from "../../../../lib/freeHit";
+import { computeLineupLock } from "../../../../lib/lineupLock";
 import { getSessionUserId } from "../../../../lib/auth";
 
 /**
@@ -50,6 +51,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const sessionUserId = await getSessionUserId(req, res);
   if (sessionUserId !== team.userId) {
     return res.status(403).json({ error: "You don't own this team." });
+  }
+
+  // Locked the same instant lineups are (see lib/lineupLock.ts): all three
+  // chips directly multiply or unlock THIS week's score (Captain doubles a
+  // starter, Bench Boost turns the bench on, Free Hit lets you dodge a bad
+  // week) -- activating one after seeing how the early games are going is
+  // exactly the exploit the lineup lock exists to prevent.
+  const allGames = await prisma.game.findMany({ select: { week: true, status: true, kickoffAt: true } });
+  const lock = computeLineupLock(allGames, new Date());
+  if (lock.locked) {
+    return res.status(423).json({ error: `Chips are locked -- Week ${lock.week}'s games have already started.` });
   }
 
   const check = canActivateChip(
