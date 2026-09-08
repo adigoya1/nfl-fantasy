@@ -504,7 +504,11 @@ export default function MyTeamPage() {
           if (atPosition.length === 0) return null;
           return (
             <div key={position} className="flex items-center gap-3 flex-wrap">
-              <div className="w-14 text-xs font-bold text-white/80 uppercase tracking-wide">{position}</div>
+              <div className="w-14 shrink-0 text-center">
+                <span className="inline-block bg-fpl-purpleDark/70 text-white text-xs font-extrabold uppercase tracking-wide px-2 py-1 rounded-md shadow-sm ring-1 ring-white/20">
+                  {position}
+                </span>
+              </div>
               <div className="flex gap-3 flex-wrap">
                 {atPosition.map((r) => (
                   <PlayerCard
