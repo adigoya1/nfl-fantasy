@@ -1,11 +1,17 @@
-# NFL Fantasy — Starter Codebase
+# FGL (Fantasy Gridiron League)
 
-This is the NFL pivot of the same app: an FPL-style fantasy game, now built
-around the 32 NFL teams instead of the SEC. The core architecture (data
-model, scoring engine, pricing engine, UI layout) carries over almost
-unchanged — the big win of moving to the NFL is that **real season
-projections already exist** for every player, so pricing no longer needs
-the recruiting-rating/depth-chart workarounds the college version needed.
+An FPL-style fantasy football game built around real NFL players and the
+32 NFL teams. Branded "FGL" rather than "NFL Fantasy" deliberately -- the
+app uses real NFL player/team data internally (completely normal for any
+fantasy platform), but naming the product itself after the NFL's own
+trademarked name isn't, once this has a real public URL people click into.
+
+This started as the NFL pivot of an earlier SEC-college-football version of
+the same app; the core architecture (data model, scoring engine, pricing
+engine, UI layout) carries over almost unchanged — the big win of moving to
+the NFL is that **real season projections already exist** for every player,
+so pricing no longer needs the recruiting-rating/depth-chart workarounds
+the college version needed.
 
 ## What's here
 

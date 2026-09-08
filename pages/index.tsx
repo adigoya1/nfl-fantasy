@@ -1,3 +1,4 @@
+import Head from "next/head";
 import { useSession, signIn, signOut } from "next-auth/react";
 
 /**
@@ -7,13 +8,22 @@ import { useSession, signIn, signOut } from "next-auth/react";
  * so the CTA here adapts: signed-out visitors sign in first, signed-in
  * visitors go straight to their team (or Create Team resolves that either
  * way -- it redirects existing owners to their team automatically).
+ *
+ * Branded as "FGL" (Fantasy Gridiron League) rather than "NFL Fantasy" --
+ * the app uses real NFL player/team data internally (completely normal for
+ * a fantasy platform), but naming the *product itself* after the NFL's own
+ * trademarked name is worth avoiding once this has a real public URL.
  */
 export default function HomePage() {
   const { data: session, status } = useSession();
 
   return (
     <main className="max-w-xl mx-auto p-10 text-center">
-      <h1 className="text-3xl font-bold mb-2">NFL Fantasy</h1>
+      <Head>
+        <title>FGL — Fantasy Gridiron League</title>
+      </Head>
+      <h1 className="text-3xl font-bold mb-2">FGL</h1>
+      <p className="text-sm text-gray-400 mb-4">Fantasy Gridiron League</p>
       <p className="text-gray-600 mb-8">
         FPL-style fantasy football for real NFL players -- pick a squad, manage transfers, use chips, and see
         who's on top of the leaderboard each week.

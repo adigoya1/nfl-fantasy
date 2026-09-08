@@ -1,3 +1,4 @@
+import Head from "next/head";
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { useSession, signIn } from "next-auth/react";
@@ -63,6 +64,9 @@ export default function CreateTeamPage() {
 
   return (
     <main className="max-w-md mx-auto p-10">
+      <Head>
+        <title>FGL — Create Your Team</title>
+      </Head>
       <h1 className="text-2xl font-bold mb-1">Create Your Team</h1>
       <p className="text-gray-600 text-sm mb-6">
         Signed in as {session.user?.email}. Pick a team name and you'll get a real, auto-drafted,

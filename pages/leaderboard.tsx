@@ -1,3 +1,4 @@
+import Head from "next/head";
 import { useEffect, useState } from "react";
 import type { LeaderboardRow } from "../lib/rankings";
 
@@ -21,7 +22,10 @@ export default function LeaderboardPage() {
 
   return (
     <main className="max-w-3xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">NFL Fantasy — Leaderboard</h1>
+      <Head>
+        <title>FGL — Leaderboard</title>
+      </Head>
+      <h1 className="text-2xl font-bold mb-4">FGL — Leaderboard</h1>
 
       <div className="flex items-center gap-2 mb-4">
         <label htmlFor="week" className="text-sm text-gray-600">

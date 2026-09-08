@@ -1,3 +1,4 @@
+import Head from "next/head";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useSession, signIn } from "next-auth/react";
@@ -168,6 +169,9 @@ export default function BuildSquadPage() {
 
   return (
     <main className="max-w-4xl mx-auto p-6">
+      <Head>
+        <title>FGL — Build Your Squad</title>
+      </Head>
       <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
         <h1 className="text-2xl font-bold">Build Your Squad: {team.name}</h1>
         <div className="flex gap-4 text-sm items-center">
