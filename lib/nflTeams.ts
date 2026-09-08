@@ -39,6 +39,11 @@ export const NFL_TEAMS: Array<{ abbr: string; name: string; division: string }> 
   { abbr: "SEA", name: "Seattle Seahawks", division: "NFC West" },
 ];
 
+/** Full team name (as stored on Team.name) -> abbreviation, for compact UI display. */
+export const ABBR_BY_TEAM_NAME: Record<string, string> = Object.fromEntries(
+  NFL_TEAMS.map((t) => [t.name, t.abbr])
+);
+
 /**
  * ESPN's proTeamId -> abbreviation mapping, verified against the espn-api
  * open-source library (github.com/cwendt94/espn-api). IDs 31 and 32 are

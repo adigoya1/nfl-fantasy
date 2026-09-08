@@ -4,6 +4,7 @@ import { useSession, signIn } from "next-auth/react";
 import { Position, Chip } from "@prisma/client";
 import { validateLineup, RosterPlayer, STARTER_REQUIREMENTS, FLEX_ELIGIBLE } from "../lib/roster";
 import { ALL_CHIPS, MIN_FREE_HIT_WEEK } from "../lib/chips";
+import { ABBR_BY_TEAM_NAME } from "../lib/nflTeams";
 import Layout from "../components/Layout";
 
 /**
@@ -80,14 +81,33 @@ const POSITION_ACCENT: Record<Position, string> = {
   DEF: "bg-fpl-purpleLight",
 };
 
+type CardStat = "opponent" | "price";
+
+interface FixtureInfo {
+  opponentAbbr: string;
+  isHome: boolean;
+}
+
+/** What to print on a player card's bottom line for the selected view. */
+function statText(entry: RosterEntry, cardStat: CardStat, fixturesByTeam: Record<string, FixtureInfo | undefined>): string {
+  if (cardStat === "price") return `$${entry.player.currentPrice.toFixed(1)}M`;
+  const fixture = fixturesByTeam[entry.player.team.name];
+  if (!fixture) return "BYE";
+  return `${fixture.isHome ? "vs" : "@"} ${fixture.opponentAbbr}`;
+}
+
 function PlayerCard({
   entry,
+  cardStat,
+  fixturesByTeam,
   isPendingIn,
   isCaptainPick,
   isFlex,
   onClick,
 }: {
   entry: RosterEntry;
+  cardStat: CardStat;
+  fixturesByTeam: Record<string, FixtureInfo | undefined>;
   isPendingIn?: boolean;
   isCaptainPick?: boolean;
   isFlex?: boolean;
@@ -107,11 +127,11 @@ function PlayerCard({
       <div className={`h-1.5 ${POSITION_ACCENT[entry.player.position]}`} />
       <div className="bg-white px-2 py-2">
         <div className="text-[10px] text-gray-400 flex justify-center gap-1 uppercase tracking-wide">
-          <span>{entry.player.team.name}</span>
+          <span>{ABBR_BY_TEAM_NAME[entry.player.team.name] ?? entry.player.team.name}</span>
           {isFlex && <span className="text-fpl-purple font-bold">FLEX</span>}
         </div>
         <div className="font-semibold text-sm truncate text-gray-800">{entry.player.name}</div>
-        <div className="text-xs text-gray-500">${entry.player.currentPrice.toFixed(1)}M</div>
+        <div className="text-xs text-gray-500">{statText(entry, cardStat, fixturesByTeam)}</div>
       </div>
     </div>
   );
@@ -152,10 +172,29 @@ export default function MyTeamPage() {
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
-  const [chipWeek, setChipWeek] = useState(1);
+  const [week, setWeek] = useState(1);
   const [pickingCaptain, setPickingCaptain] = useState(false);
   const [chipMessage, setChipMessage] = useState<string | null>(null);
   const [chipBusy, setChipBusy] = useState(false);
+
+  // What each player card's bottom line shows -- defaults to the week's
+  // opponent (the more useful view when setting a lineup) rather than price.
+  const [cardStat, setCardStat] = useState<CardStat>("opponent");
+  const [fixturesByTeam, setFixturesByTeam] = useState<Record<string, FixtureInfo | undefined>>({});
+
+  useEffect(() => {
+    fetch(`/api/games/${week}`)
+      .then((res) => res.json())
+      .then((data: { games: { homeTeam: string; awayTeam: string }[] }) => {
+        const byTeam: Record<string, FixtureInfo> = {};
+        for (const g of data.games ?? []) {
+          byTeam[g.homeTeam] = { opponentAbbr: ABBR_BY_TEAM_NAME[g.awayTeam] ?? g.awayTeam, isHome: true };
+          byTeam[g.awayTeam] = { opponentAbbr: ABBR_BY_TEAM_NAME[g.homeTeam] ?? g.homeTeam, isHome: false };
+        }
+        setFixturesByTeam(byTeam);
+      })
+      .catch(() => setFixturesByTeam({}));
+  }, [week]);
 
   function loadTeam() {
     if (!teamId) return;
@@ -310,11 +349,11 @@ export default function MyTeamPage() {
       const res = await fetch(`/api/fantasy-team/${teamId}/chips`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chip, week: chipWeek, captainPlayerId }),
+        body: JSON.stringify({ chip, week, captainPlayerId }),
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error ?? "Couldn't activate chip");
-      setChipMessage(`${CHIP_LABELS[chip]} activated for week ${chipWeek}.`);
+      setChipMessage(`${CHIP_LABELS[chip]} activated for week ${week}.`);
       loadTeam();
     } catch (e: any) {
       setChipMessage(`Error: ${e.message}`);
@@ -337,7 +376,7 @@ export default function MyTeamPage() {
 
   return (
     <Layout title={`FGL — ${team.name}`}>
-      <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
+      <div className="flex justify-between items-center mb-4 flex-wrap gap-3">
         <h1 className="text-2xl font-bold text-fpl-purple">{team.name}</h1>
         <div className="flex gap-2 text-sm items-center flex-wrap">
           <span className="bg-fpl-green/20 text-fpl-purple font-semibold px-3 py-1 rounded-full">
@@ -361,24 +400,38 @@ export default function MyTeamPage() {
         </div>
       </div>
 
+      <div className="flex justify-end items-center gap-4 mb-6 flex-wrap text-sm">
+        <label className="text-gray-500 flex items-center gap-2">
+          Week
+          <input
+            type="number"
+            min={1}
+            value={week}
+            onChange={(e) => setWeek(Number(e.target.value) || 1)}
+            className="w-16 border border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-fpl-purple/30 focus:border-fpl-purple"
+          />
+        </label>
+        <label className="text-gray-500 flex items-center gap-2">
+          View
+          <select
+            value={cardStat}
+            onChange={(e) => setCardStat(e.target.value as CardStat)}
+            className="border border-gray-300 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-fpl-purple/30 focus:border-fpl-purple"
+          >
+            <option value="opponent">Opponent</option>
+            <option value="price">Price</option>
+          </select>
+        </label>
+      </div>
+
       <div className="bg-white rounded-2xl shadow-sm border overflow-hidden mb-6">
-        <div className="flex items-center justify-between px-4 py-3 bg-fpl-purple/5 border-b">
+        <div className="px-4 py-3 bg-fpl-purple/5 border-b">
           <h2 className="text-sm font-bold text-fpl-purple uppercase tracking-wide">Chips</h2>
-          <label className="text-xs text-gray-500 flex items-center gap-2">
-            Week
-            <input
-              type="number"
-              min={1}
-              value={chipWeek}
-              onChange={(e) => setChipWeek(Number(e.target.value) || 1)}
-              className="w-16 border rounded px-1 py-0.5"
-            />
-          </label>
         </div>
         <div className="p-4">
           {pickingCaptain && (
             <div className="bg-fpl-purple/10 text-fpl-purple text-sm rounded-lg p-2.5 mb-3">
-              Click a starter below to name them Captain for week {chipWeek} (2x points that week only).{" "}
+              Click a starter below to name them Captain for week {week} (2x points that week only).{" "}
               <button className="underline font-medium" onClick={() => setPickingCaptain(false)}>
                 Cancel
               </button>
@@ -388,7 +441,7 @@ export default function MyTeamPage() {
             {ALL_CHIPS.map((chip) => {
               const usage = team.chipUsages.find((u) => u.chip === chip);
               const isUsed = usedChips.has(chip);
-              const blockedThisWeek = chip === Chip.FREE_HIT && chipWeek < MIN_FREE_HIT_WEEK;
+              const blockedThisWeek = chip === Chip.FREE_HIT && week < MIN_FREE_HIT_WEEK;
               return (
                 <div key={chip} className="border rounded-xl px-3 py-2 text-sm min-w-[8rem]">
                   <div className="font-semibold text-gray-700">{CHIP_LABELS[chip]}</div>
@@ -440,6 +493,8 @@ export default function MyTeamPage() {
                   <PlayerCard
                     key={r.player.id}
                     entry={r}
+                    cardStat={cardStat}
+                    fixturesByTeam={fixturesByTeam}
                     isFlex={flexPlayerId === r.player.id}
                     isCaptainPick={pickingCaptain}
                     onClick={() => handleCardClick(r.player.id, true)}
@@ -457,6 +512,8 @@ export default function MyTeamPage() {
           <PlayerCard
             key={r.player.id}
             entry={r}
+            cardStat={cardStat}
+            fixturesByTeam={fixturesByTeam}
             isPendingIn={pendingInId === r.player.id}
             onClick={() => handleCardClick(r.player.id, false)}
           />
