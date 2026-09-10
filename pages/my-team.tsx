@@ -158,7 +158,7 @@ function PlayerCard({
   return (
     <div
       onClick={onClick}
-      className={`relative rounded-xl shadow-md w-32 sm:w-36 text-center cursor-pointer transition overflow-hidden ${
+      className={`relative rounded-xl shadow-md w-[6.5rem] sm:w-32 md:w-36 text-center cursor-pointer transition overflow-hidden ${
         isPendingIn
           ? "ring-4 ring-yellow-400"
           : isCaptainPick
@@ -575,7 +575,7 @@ export default function MyTeamPage() {
 
       {teamScore && (
         <div
-          className="rounded-2xl text-white p-5 mb-4 flex items-center justify-between flex-wrap gap-4"
+          className="rounded-2xl text-white p-4 sm:p-5 mb-4 flex items-center justify-between flex-wrap gap-3 sm:gap-4"
           style={{ backgroundImage: "linear-gradient(to bottom right, #37003c, #240028)" }}
         >
 
@@ -589,16 +589,16 @@ export default function MyTeamPage() {
                 </span>
               )}
             </div>
-            <div className="font-display text-4xl font-extrabold leading-none">{teamScore.weekPoints}</div>
+            <div className="font-display text-3xl sm:text-4xl font-extrabold leading-none">{teamScore.weekPoints}</div>
           </div>
-          <div className="flex gap-6 text-right">
+          <div className="flex gap-4 sm:gap-6 text-right">
             <div>
               <div className="text-xs uppercase tracking-wide text-white/60 font-semibold mb-1">Season total</div>
-              <div className="font-display text-2xl font-bold">{teamScore.seasonPoints}</div>
+              <div className="font-display text-xl sm:text-2xl font-bold">{teamScore.seasonPoints}</div>
             </div>
             <div>
               <div className="text-xs uppercase tracking-wide text-white/60 font-semibold mb-1">Overall rank</div>
-              <div className="font-display text-2xl font-bold text-fpl-green">#{teamScore.overallRank}</div>
+              <div className="font-display text-xl sm:text-2xl font-bold text-fpl-green">#{teamScore.overallRank}</div>
             </div>
           </div>
         </div>
@@ -693,18 +693,18 @@ export default function MyTeamPage() {
         </div>
       )}
 
-      <div className="pitch-bg rounded-2xl p-6 space-y-5 shadow-inner">
+      <div className="pitch-bg rounded-2xl p-3 sm:p-6 space-y-4 sm:space-y-5 shadow-inner">
         {POSITION_ORDER.map((position) => {
           const atPosition = starters.filter((r) => r.player.position === position);
           if (atPosition.length === 0) return null;
           return (
-            <div key={position} className="flex items-center gap-3 flex-wrap">
-              <div className="w-14 shrink-0 text-center">
-                <span className="inline-block bg-fpl-purpleDark/70 text-white text-xs font-extrabold uppercase tracking-wide px-2 py-1 rounded-md shadow-sm ring-1 ring-white/20">
+            <div key={position} className="flex items-center gap-2 sm:gap-3 flex-wrap">
+              <div className="w-10 sm:w-14 shrink-0 text-center">
+                <span className="inline-block bg-fpl-purpleDark/70 text-white text-[10px] sm:text-xs font-extrabold uppercase tracking-wide px-1.5 sm:px-2 py-1 rounded-md shadow-sm ring-1 ring-white/20">
                   {position}
                 </span>
               </div>
-              <div className="flex gap-3 flex-wrap">
+              <div className="flex gap-2 sm:gap-3 flex-wrap">
                 {atPosition.map((r) => (
                   <PlayerCard
                     key={r.player.id}
@@ -724,7 +724,7 @@ export default function MyTeamPage() {
       </div>
 
       <h2 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mt-6 mb-2">Bench</h2>
-      <div className="flex gap-3 flex-wrap bg-white dark:bg-slate-800 rounded-2xl border dark:border-slate-700 p-4 shadow-sm">
+      <div className="flex gap-2 sm:gap-3 flex-wrap bg-white dark:bg-slate-800 rounded-2xl border dark:border-slate-700 p-3 sm:p-4 shadow-sm">
         {bench.map((r) => (
           <PlayerCard
             key={r.player.id}

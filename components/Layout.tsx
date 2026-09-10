@@ -27,14 +27,14 @@ export default function Layout({ children, title = "FGL" }: { children: React.Re
       </Head>
 
       <header className="bg-fpl-purple dark:bg-fpl-purpleDark sticky top-0 z-10 shadow-md">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+        <div className="max-w-5xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
           <Link href="/" className="flex items-center gap-2 shrink-0">
             <span className="font-display bg-fpl-green text-fpl-purple font-extrabold text-sm px-2.5 py-1 rounded-md tracking-tight">
               FGL
             </span>
             <span className="text-white/90 font-semibold text-sm hidden sm:inline">Fantasy Gridiron League</span>
           </Link>
-          <nav className="flex items-center gap-1 text-sm font-medium overflow-x-auto">
+          <nav className="flex items-center gap-0.5 sm:gap-1 text-sm font-medium overflow-x-auto">
             <NavLink href="/my-team">My Team</NavLink>
             <NavLink href="/transfers">Transfers</NavLink>
             <NavLink href="/leaderboard">Leaderboard</NavLink>
@@ -57,7 +57,7 @@ export default function Layout({ children, title = "FGL" }: { children: React.Re
             {session && (
               <button
                 onClick={() => signOut({ callbackUrl: "/" })}
-                className="ml-1 text-white/50 hover:text-white text-xs px-2 py-2 whitespace-nowrap transition"
+                className="ml-1 text-white/50 hover:text-white text-xs px-1.5 sm:px-2 py-2 whitespace-nowrap transition"
               >
                 Sign out
               </button>
@@ -75,7 +75,7 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
   return (
     <Link
       href={href}
-      className="text-white/80 hover:text-fpl-green hover:bg-white/5 px-3 py-2 rounded-lg whitespace-nowrap transition"
+      className="text-white/80 hover:text-fpl-green hover:bg-white/5 px-2 sm:px-3 py-2 text-xs sm:text-sm rounded-lg whitespace-nowrap transition"
     >
       {children}
     </Link>

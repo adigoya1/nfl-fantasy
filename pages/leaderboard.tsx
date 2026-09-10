@@ -52,52 +52,57 @@ export default function LeaderboardPage() {
         {loading ? (
           <p className="p-6 text-center text-gray-400 dark:text-gray-500">Loading…</p>
         ) : (
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr className="bg-fpl-purple dark:bg-fpl-purpleDark text-white text-left">
-                <th className="py-3 px-4 font-semibold">Overall</th>
-                <th className="py-3 px-2 font-semibold">Wk Rank</th>
-                <th className="py-3 px-2 font-semibold">Team</th>
-                <th className="py-3 px-4 font-semibold text-right">Wk Pts</th>
-                <th className="py-3 px-4 font-semibold text-right">Season Pts</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows
-                .sort((a, b) => a.overallRank - b.overallRank)
-                .map((row, i) => (
-                  <tr
-                    key={row.fantasyTeamId}
-                    className={i % 2 === 0 ? "bg-white dark:bg-slate-800" : "bg-gray-50 dark:bg-slate-900"}
-                  >
-                    <td className="py-2.5 px-4">
-                      <span
-                        className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
-                          RANK_BADGE[row.overallRank] ?? "bg-fpl-purple/10 dark:bg-fpl-purple/40 text-fpl-purple dark:text-white"
-                        }`}
-                      >
-                        {row.overallRank}
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-2 text-gray-500 dark:text-gray-400">{row.weekRank}</td>
-                    <td className="py-2.5 px-2 font-medium text-gray-800 dark:text-gray-100">
-                      {row.fantasyTeamName}
-                    </td>
-                    <td className="py-2.5 px-4 text-right text-gray-700 dark:text-gray-300">{row.weekPoints}</td>
-                    <td className="py-2.5 px-4 text-right font-bold text-fpl-purple dark:text-fpl-green">
-                      {row.seasonPoints}
+          // overflow-x-auto so a narrow phone can swipe the table sideways
+          // instead of every column getting crushed (or forcing the whole
+          // page to scroll horizontally).
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border-collapse min-w-[480px]">
+              <thead>
+                <tr className="bg-fpl-purple dark:bg-fpl-purpleDark text-white text-left">
+                  <th className="py-3 px-4 font-semibold">Overall</th>
+                  <th className="py-3 px-2 font-semibold">Wk Rank</th>
+                  <th className="py-3 px-2 font-semibold">Team</th>
+                  <th className="py-3 px-4 font-semibold text-right">Wk Pts</th>
+                  <th className="py-3 px-4 font-semibold text-right">Season Pts</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows
+                  .sort((a, b) => a.overallRank - b.overallRank)
+                  .map((row, i) => (
+                    <tr
+                      key={row.fantasyTeamId}
+                      className={i % 2 === 0 ? "bg-white dark:bg-slate-800" : "bg-gray-50 dark:bg-slate-900"}
+                    >
+                      <td className="py-2.5 px-4">
+                        <span
+                          className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
+                            RANK_BADGE[row.overallRank] ?? "bg-fpl-purple/10 dark:bg-fpl-purple/40 text-fpl-purple dark:text-white"
+                          }`}
+                        >
+                          {row.overallRank}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-2 text-gray-500 dark:text-gray-400">{row.weekRank}</td>
+                      <td className="py-2.5 px-2 font-medium text-gray-800 dark:text-gray-100">
+                        {row.fantasyTeamName}
+                      </td>
+                      <td className="py-2.5 px-4 text-right text-gray-700 dark:text-gray-300">{row.weekPoints}</td>
+                      <td className="py-2.5 px-4 text-right font-bold text-fpl-purple dark:text-fpl-green">
+                        {row.seasonPoints}
+                      </td>
+                    </tr>
+                  ))}
+                {rows.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="py-8 text-center text-gray-400 dark:text-gray-500">
+                      No data yet for this week.
                     </td>
                   </tr>
-                ))}
-              {rows.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="py-8 text-center text-gray-400 dark:text-gray-500">
-                    No data yet for this week.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </Layout>
