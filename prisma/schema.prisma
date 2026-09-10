@@ -175,6 +175,12 @@ model FantasyTeam {
   name            String
   budgetRemaining Float    @default(0)
   freeTransfers   Int      @default(1)
+  // Last week this team's +1 weekly free-transfer rollover was already
+  // applied for (see lib/transferRollover.ts). Null means it's never
+  // happened yet. Guards against double-crediting the rollover when
+  // pages/api/week/[week]/score.ts gets re-polled repeatedly after a week
+  // has already gone final.
+  lastTransferRolloverWeek Int?
 
   rosterSlots     RosterSlot[]
   transfers       Transfer[]

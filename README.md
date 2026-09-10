@@ -169,6 +169,21 @@ and `pages/api/fantasy-team/[id]/index.ts` (to show "Unlimited transfers"
 on the My Team / Transfers pages before a manager even attempts one) check
 this the same way.
 
+## How the weekly free-transfer rollover works
+
+Each team starts with 1 free transfer, and once a week ends it banks +1
+more for next week (unused ones stack, uncapped for now), the same way
+real FPL works -- see `lib/transferRollover.ts`. The one exception: a team
+that played **Free Hit** that week doesn't also get the rollover, since
+Free Hit already handed it unlimited free transfers for the week.
+
+This piggybacks on `pages/api/week/[week]/score.ts`, the same endpoint
+that already checks whether a week has gone fully FINAL for the Free Hit
+revert -- once it has, every team gets rolled over in the same pass.
+`FantasyTeam.lastTransferRolloverWeek` records the last week a team was
+already credited for, so re-polling this endpoint after a week ends (which
+happens routinely) never double-credits anyone.
+
 ## How people get their own team
 
 Real accounts now, via Google sign-in (NextAuth, `pages/api/auth/[...nextauth].ts`)

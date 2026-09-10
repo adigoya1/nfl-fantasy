@@ -131,6 +131,7 @@ function PlayerCard({
   entry,
   cardStat,
   fixturesByTeam,
+  pointsByPlayer,
   isPendingIn,
   isCaptainPick,
   isFlex,
@@ -139,6 +140,7 @@ function PlayerCard({
   entry: RosterEntry;
   cardStat: CardStat;
   fixturesByTeam: Record<string, FixtureInfo | undefined>;
+  pointsByPlayer: Record<string, number | undefined>;
   isPendingIn?: boolean;
   isCaptainPick?: boolean;
   isFlex?: boolean;
@@ -177,14 +179,24 @@ function PlayerCard({
         )}
       </div>
       <GameStatusBadge fixture={fixture} />
-      <div className="bg-white dark:bg-slate-800 px-2 py-2">
-        <div className="font-semibold text-sm truncate text-gray-900 dark:text-white">{entry.player.name}</div>
-        {/* Plain gray rather than a team color here -- some teams' primary
-            colors (black, navy) would be unreadable against a dark card
-            body, and checking contrast against two different body colors
-            (white/slate-800) wasn't worth the complexity. */}
-        <div className="text-xs font-medium text-gray-600 dark:text-gray-300">
-          {statText(entry, cardStat, fixturesByTeam)}
+      <div className="bg-white dark:bg-slate-800 px-2 py-2 flex items-center justify-between gap-1">
+        <div className="min-w-0 text-left">
+          <div className="font-semibold text-sm truncate text-gray-900 dark:text-white">{entry.player.name}</div>
+          {/* Plain gray rather than a team color here -- some teams' primary
+              colors (black, navy) would be unreadable against a dark card
+              body, and checking contrast against two different body colors
+              (white/slate-800) wasn't worth the complexity. */}
+          <div className="text-xs font-medium text-gray-600 dark:text-gray-300">
+            {statText(entry, cardStat, fixturesByTeam)}
+          </div>
+        </div>
+        {/* Live fantasy points for this player this week -- 0 until they've
+            actually got a scored stat line (game hasn't started/no stats
+            loaded yet). Deliberately not captain-doubled here (see
+            pages/api/week/[week]/player-scores.ts): this is what the
+            player themselves scored, not this team's chip-adjusted total. */}
+        <div className="font-display text-lg font-extrabold text-fpl-purple dark:text-fpl-green shrink-0">
+          {pointsByPlayer[entry.player.id] ?? 0}
         </div>
       </div>
     </div>
@@ -235,6 +247,7 @@ export default function MyTeamPage() {
   // opponent (the more useful view when setting a lineup) rather than price.
   const [cardStat, setCardStat] = useState<CardStat>("opponent");
   const [fixturesByTeam, setFixturesByTeam] = useState<Record<string, FixtureInfo | undefined>>({});
+  const [pointsByPlayer, setPointsByPlayer] = useState<Record<string, number | undefined>>({});
 
   const [teamScore, setTeamScore] = useState<{ weekPoints: number; seasonPoints: number; overallRank: number } | null>(
     null
@@ -315,6 +328,31 @@ export default function MyTeamPage() {
     // Re-poll while this page is open so LIVE/Red Zone badges actually move
     // during a real game window, instead of only updating on a manual
     // refresh. 30s matches how often scores/situations meaningfully change.
+    const interval = setInterval(poll, 30000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [week]);
+
+  // Per-player live points, shown on each PlayerCard -- same 30s cadence as
+  // the fixtures poll above, since both move at the pace of a live game.
+  useEffect(() => {
+    let cancelled = false;
+
+    function poll() {
+      fetch(`/api/week/${week}/player-scores`)
+        .then((res) => res.json())
+        .then((data: { points: Record<string, number> }) => {
+          if (cancelled) return;
+          setPointsByPlayer(data.points ?? {});
+        })
+        .catch(() => {
+          if (!cancelled) setPointsByPlayer({});
+        });
+    }
+
+    poll();
     const interval = setInterval(poll, 30000);
     return () => {
       cancelled = true;
@@ -673,6 +711,7 @@ export default function MyTeamPage() {
                     entry={r}
                     cardStat={cardStat}
                     fixturesByTeam={fixturesByTeam}
+                    pointsByPlayer={pointsByPlayer}
                     isFlex={flexPlayerId === r.player.id}
                     isCaptainPick={pickingCaptain}
                     onClick={() => handleCardClick(r.player.id, true)}
@@ -692,6 +731,7 @@ export default function MyTeamPage() {
             entry={r}
             cardStat={cardStat}
             fixturesByTeam={fixturesByTeam}
+            pointsByPlayer={pointsByPlayer}
             isPendingIn={pendingInId === r.player.id}
             onClick={() => handleCardClick(r.player.id, false)}
           />

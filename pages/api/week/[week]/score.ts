@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "../../../../lib/prisma";
 import { scoreGame, computeBps, awardBonusPoints, RawStatLine } from "../../../../lib/scoring";
 import { isWeekFullyFinal, planRevert, RosterSlotLike } from "../../../../lib/freeHit";
+import { planTransferRollover } from "../../../../lib/transferRollover";
 
 /**
  * POST /api/week/[week]/score
@@ -21,6 +22,13 @@ import { isWeekFullyFinal, planRevert, RosterSlotLike } from "../../../../lib/fr
  * Piggybacking on this endpoint means no separate cron job is needed --
  * whatever's already re-running this every few minutes during game windows
  * (per the README) naturally catches the moment the week finishes.
+ *
+ * Same idea powers the weekly free-transfer rollover (lib/transferRollover.ts):
+ * once the week is over, every team banks +1 free transfer for next week,
+ * except a team that played FREE_HIT this week (it already got unlimited
+ * transfers, so it doesn't also stack a banked one). `lastTransferRolloverWeek`
+ * on FantasyTeam makes this idempotent the same way FreeHitSnapshot.restoredAt
+ * does for the revert.
  *
  * Caveat: this checks the status of every Game row for the week, not just
  * ones with stats loaded, so it correctly waits out a week that still has
@@ -117,8 +125,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   await prisma.$transaction(upserts);
 
   const freeHitRevertsApplied = await revertFreeHitSnapshotsIfWeekIsOver(week);
+  const freeTransferRolloversApplied = await applyFreeTransferRolloverIfWeekIsOver(week);
 
-  return res.status(200).json({ week, updated: upserts.length, provisional, freeHitRevertsApplied });
+  return res.status(200).json({
+    week,
+    updated: upserts.length,
+    provisional,
+    freeHitRevertsApplied,
+    freeTransferRolloversApplied,
+  });
 }
 
 /**
@@ -161,4 +176,46 @@ async function revertFreeHitSnapshotsIfWeekIsOver(week: number): Promise<number>
   }
 
   return pending.length;
+}
+
+/**
+ * Once this week's games are all FINAL, credits every team +1 free
+ * transfer for next week -- except a team that played FREE_HIT this week
+ * (see lib/transferRollover.ts). Safe to call on every poll after the week
+ * ends: `lastTransferRolloverWeek` means a team already rolled over for
+ * this week (or later) is skipped instead of re-credited.
+ */
+async function applyFreeTransferRolloverIfWeekIsOver(week: number): Promise<number> {
+  const games = await prisma.game.findMany({ where: { week }, select: { status: true } });
+  if (!isWeekFullyFinal(games.map((g) => g.status))) {
+    return 0;
+  }
+
+  const [teams, freeHitUsages] = await Promise.all([
+    prisma.fantasyTeam.findMany({
+      select: { id: true, freeTransfers: true, lastTransferRolloverWeek: true },
+    }),
+    prisma.chipUsage.findMany({
+      where: { chip: "FREE_HIT", week },
+      select: { fantasyTeamId: true },
+    }),
+  ]);
+  const freeHitTeamIds = new Set(freeHitUsages.map((u) => u.fantasyTeamId));
+
+  let applied = 0;
+  for (const team of teams) {
+    const plan = planTransferRollover(
+      { ...team, playedFreeHitThisWeek: freeHitTeamIds.has(team.id) },
+      week
+    );
+    if (!plan) continue;
+
+    await prisma.fantasyTeam.update({
+      where: { id: plan.fantasyTeamId },
+      data: { freeTransfers: plan.freeTransfers, lastTransferRolloverWeek: week },
+    });
+    applied++;
+  }
+
+  return applied;
 }
