@@ -17,8 +17,21 @@ on:
     # All times UTC. Windows are deliberately generous (wide enough to
     # cover both EST and EDT kickoffs) rather than exact, since an extra
     # no-op-ish run just costs a few seconds.
+    #
+    # Covers every evening a game can plausibly kick off (Wed through Mon
+    # night), not just the "normal" Thu/Sun/Mon slate -- Week 1 (and other
+    # weeks with an early-season/international opener) can have a game as
+    # early as Wednesday night ET, which is NOT the same thing as "Thursday
+    # Night Football" the following night. Missing that window was exactly
+    # why Week 1's opener got stuck showing "Live" long after it ended: the
+    # old schedule only started at Thursday 23:00 UTC, hours after that
+    # game had already kicked off (and finished).
+    - cron: "*/10 23 * * 3" # Wednesday night game (season openers, etc.)
+    - cron: "*/10 0-4 * * 4" # ...continuing into Thursday
     - cron: "*/10 23 * * 4" # Thursday night game
     - cron: "*/10 0-4 * * 5" # ...continuing into Friday
+    - cron: "*/10 23 * * 5" # Friday night game (e.g. Black Friday)
+    - cron: "*/10 0-4 * * 6" # ...continuing into Saturday
     - cron: "*/10 13-23 * * 0" # Sunday's full slate
     - cron: "*/10 0-4 * * 1" # ...continuing into Monday
     - cron: "*/10 23 * * 1" # Monday night game
